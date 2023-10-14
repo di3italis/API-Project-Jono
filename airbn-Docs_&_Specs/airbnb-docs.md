@@ -1,4 +1,5 @@
-# `<name of application here>`
+<!-- # `<name of application here>` -->
+## Jono AirBnB API Project
 
 ## Database Schema Design
 

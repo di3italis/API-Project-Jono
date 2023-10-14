@@ -1,5 +1,7 @@
 
-
+### Deprecated, Please see schema-API-Project.png
+> or link to dbdiagram:
+https://dbdiagram.io/d/API-Project-65273453ffbf5169f08513ab
 
 ## The tables will be:
 
