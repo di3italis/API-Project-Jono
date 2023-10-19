@@ -5,3 +5,8 @@ npm run sequelize --prex backend migrate:undo &&
 npm run sequelize --prex backend seed:undo:all &&
 npm run sequelize --prefix backend db:migrate &&
 npm run sequelize --prefix backend db:seed:all
+
+//something about postman xsrf variable
+xsrftoken
+var xsrfCookie = postman.getResponseCookie("XSRF-TOKEN");
+postman.setEnvironmentVariable('xsrftoken', xsrfCookie.value);
