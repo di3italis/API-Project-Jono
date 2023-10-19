@@ -5,23 +5,14 @@ const cors = require("cors");
 const csurf = require("csurf");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
-<<<<<<< HEAD
 const { ValidationError } = require("sequelize");
-=======
-const { ValidationError } = require('sequelize');
->>>>>>> dev
 
 const routes = require("./routes");
 const { environment } = require("./config");
 const isProduction = environment === "production";
-<<<<<<< HEAD
 console.log(
     `\n>>>   >>>   >>> \nENVIRONMENT: ${environment}\n<<<   <<<   <<<\n`
 );
-=======
-console.log(`\n>>>   >>>   >>> \nENVIRONMENT: ${environment}\n<<<   <<<   <<<\n`);
-
->>>>>>> dev
 
 const app = express();
 
@@ -75,17 +66,10 @@ app.use((err, _req, _res, next) => {
         for (let error of err.errors) {
             errors[error.path] = error.message;
         }
-<<<<<<< HEAD
         err.title = "Validation error";
         err.errors = errors;
     }
     next(err);
-=======
-        err.title = "Validation error"
-        err.errors = errors;
-    }
-    next(err)
->>>>>>> dev
 });
 
 //? error formatter
@@ -93,17 +77,10 @@ app.use((err, _req, res, _next) => {
     res.status(err.status || 500);
     console.error(err);
     res.json({
-<<<<<<< HEAD
         title: err.title || "Server Error",
         message: err.message,
         errors: err.errors,
         stack: isProduction ? null : err.stack,
-=======
-        title: err.title || 'Server Error',
-        message: err.message,
-        errors: err.errors,
-        stack: isProduction ? null : err.stack
->>>>>>> dev
     });
 });
 
