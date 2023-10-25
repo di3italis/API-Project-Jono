@@ -8,6 +8,7 @@
         "sequelize-cli": "sequelize-cli",
         "start": "per-env",
         "start:development": "nodemon ./bin/www",
+        "dev": "nodemon ./bin/www",
         "start:production": "nodemon ./bin/www",
         "build": "node psql-setup-script.js"
     },
