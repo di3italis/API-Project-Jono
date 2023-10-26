@@ -1,5 +1,5 @@
 const express = require("express");
-const { Op } = require('sequelize');
+const { Op } = require("sequelize");
 const bcrypt = require("bcryptjs");
 
 const { setTokenCookie, restoreUser } = require("../../utils/auth");
@@ -7,6 +7,7 @@ const { User } = require("../../db/models");
 
 const router = express.Router();
 
+//$ LOGOUT
 router.post("/", async (req, res, next) => {
     const { credential, password } = req.body;
 
@@ -14,9 +15,9 @@ router.post("/", async (req, res, next) => {
         where: {
             [Op.or]: {
                 username: credential,
-                email: credential
-            }
-        }
+                email: credential,
+            },
+        },
     });
 
     // console.log(`pw: ${password}, user pw: ${user.hashedPassword}`);
@@ -39,7 +40,13 @@ router.post("/", async (req, res, next) => {
     };
     await setTokenCookie(res, safeUser);
 
-    return res.json({ user:safeUser})
+    return res.json({ user: safeUser });
+});
+
+//$ LOGOUT
+router.delete("/", (_req, res) => {
+    res.clearCookie("token");
+    return res.json({ message: "success" });
 });
 
 module.exports = router;
