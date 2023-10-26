@@ -10,9 +10,8 @@ const { ValidationError } = require("sequelize");
 const routes = require("./routes");
 const { environment } = require("./config");
 const isProduction = environment === "production";
-console.log(
-    `\n>>>   >>>   >>> \nENVIRONMENT: ${environment}\n<<<   <<<   <<<\n`
-);
+// console.log(`\n>>>   >>>   >>> \nENVIRONMENT: ${environment}\n<<<   <<<   <<<\n`);
+
 
 const app = express();
 
@@ -59,7 +58,7 @@ app.use((_req, _res, next) => {
 
 //? process sequelize errors
 app.use((err, _req, _res, next) => {
-    console.log("HEEEEEYAAAHHH, HEEEEEYAAAHHH!");
+    // console.log("HEEEEEYAAAHHH, HEEEEEYAAAHHH!");
     // check if error is a sequelize error:
     if (err instanceof ValidationError) {
         let errors = {};
