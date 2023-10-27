@@ -1,7 +1,7 @@
 {
-    "name": "authenticate-me-long-practice",
+    "name": "airBarnBats",
     "version": "1.0.0",
-    "description": "",
+    "description": "airBarnBats",
     "main": "index.js",
     "scripts": {
         "install": "npm --prefix backend install backend",
@@ -11,7 +11,15 @@
         "start": "npm start --prefix backend",
         "build": "npm run --prefix backend build"
     },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/di3italis/airBarnBats.git"
+    },
     "keywords": [],
     "author": "",
-    "license": "ISC"
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/di3italis/airBarnBats/issues"
+    },
+    "homepage": "https://github.com/di3italis/airBarnBats#readme"
 }
