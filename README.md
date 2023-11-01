@@ -1,13 +1,90 @@
 <!-- # `<name of application here>` -->
+
 ## Jono AirBnB API Project
 
 ## Database Schema Design
 
 ![airbnbSchema](./images/schema-API-Project.png)
 
+<details>
+<summary style="font-size:1.3em; font-weight: bold">Database Schema Tables</summary>
+
+### Users Table
+
+| Column Name    | Data Type | Constraints      | Description |
+| -------------- | --------- | ---------------- | ----------- |
+| id             | INTEGER   | PK               |             |
+| username       | STRING    | unique, not null |             |
+| hashedPassword | STRING    | not null         |             |
+| firstName      | STRING    | not null         |             |
+| lastName       | STRING    | not null         |             |
+| email          | STRING    | unique, not null |             |
+| createdAt      | DATE      | not null         |             |
+| updatedAt      | STRING    | not null         |             |
+
+### Spots Table
+
+| Column Name | Data Type | Constraints   | Description |
+| ----------- | --------- | ------------- | ----------- |
+| id          | INTEGER   | PK            |             |
+| ownerId     | INTEGER   | FK > Users.id |             |
+| address     | STRING    | not null      |             |
+| city        | STRING    | not null      |             |
+| state       | STRING    | not null      |             |
+| country     | STRING    | not null      |             |
+| lat         | FLOAT     | not null      |             |
+| lng         | FLOAT     | not null      |             |
+| name        | STRING    | not null      |             |
+| description | STRING    |               |             |
+| price       | FLOAT     | not null      |             |
+| createdAt   | DATE      | not null      |             |
+| updatedAt   | DATE      | not null      |             |
+
+### Bookings Table
+
+| Column Name | Data Type | Constraints   | Description |
+| ----------- | --------- | ------------- | ----------- |
+| id          | INTEGER   | PK            |             |
+| spotId      | INTEGER   | FK > Spots.id |             |
+| userId      | INTEGER   | FK > Users.id |             |
+| startDate   | DATE      | not null      |             |
+| endDate     | DATE      | not null      |             |
+| createdAt   | DATE      |               |             |
+| updatedAt   | DATE      | not null      |             |
+
+### Reviews Table
+
+| Column Name | Data Type | Constraints   | Description |
+| ----------- | --------- | ------------- | ----------- |
+| id          | INTEGER   | PK            |             |
+| spotId      | INTEGER   | FK > Spots.id |             |
+| userId      | INTEGER   | FK > Users.id |             |
+| review      | STRING    | not null      |             |
+| stars       | INTEGER   | not null      |             |
+| createdAt   | DATE      |               |             |
+| updatedAt   | DATE      | not null      |             |
+
+### Images Table
+
+| Column Name   | Data Type | Constraints | Description                   |
+| ------------- | --------- | ----------- | ----------------------------- |
+| id            | INTEGER   | PK          |                               |
+| imageableType | INTEGER   |             | ["Users", "Spots", "Reviews"] |
+| imageableId   | INTEGER   |             | belongsTo User, Spot, Review  |
+| createdAt     | DATE      |             |                               |
+| updatedAt     | DATE      | not null    |                               |
+
+</details>
+
+<!-- //# API Docs -------------------------------------------------------------- -->
+<!-- //# -------------------------------------------------------------- -->
+
 ## API Documentation
 
-## USER AUTHENTICATION/AUTHORIZATION
+<details>
+<summary style="font-size:1.3em; font-weight: bold">User Authentication</summary>
+
+<!-- ## USER AUTHENTICATION/AUTHORIZATION -->
 <!-- //# ---------------------------------------- -->
 <!-- //# ---------------------------------------- -->
 
@@ -255,11 +332,17 @@ user's information.
     }
     ```
 
-## SPOTS
-<!-- //# ---------------------------------------- -->
-<!-- //# ---------------------------------------- -->
+  //# --------------------------------------------------------------
+  </details>
 
-### Get all Spots
+##
+
+<!-- //# SPOTS ---------------------------------------- -->
+<!-- //# ---------------------------------------- -->
+<details>
+<summary style="font-size:1.3em; font-weight: bold">Spots</summary>
+
+### ✅Get all Spots
 
 Returns all the spots.
 
@@ -301,7 +384,7 @@ Returns all the spots.
     }
     ```
 
-### Get all Spots owned by the Current User
+### ✅Get all Spots owned by the Current User
 
 Returns all the spots owned (created) by the current user.
 
@@ -343,7 +426,7 @@ Returns all the spots owned (created) by the current user.
     }
     ```
 
-### Get details of a Spot from an id
+### 🚨 Get details of a Spot from an id //? missing reviews and images
 
 Returns the details of a spot specified by its id.
 
@@ -411,7 +494,7 @@ Returns the details of a spot specified by its id.
     }
     ```
 
-### Create a Spot
+### ✅Create a Spot
 
 Creates and returns a new spot.
 
@@ -487,7 +570,7 @@ Creates and returns a new spot.
     }
     ```
 
-### Add an Image to a Spot based on the Spot's id
+### ✅Add an Image to a Spot based on the Spot's id
 
 Create and return a new image for a spot specified by id.
 
@@ -536,7 +619,7 @@ Create and return a new image for a spot specified by id.
     }
     ```
 
-### Edit a Spot
+### ✅Edit a Spot
 
 Updates and returns an existing spot.
 
@@ -626,7 +709,7 @@ Updates and returns an existing spot.
     }
     ```
 
-### Delete a Spot
+### ✅Delete a Spot
 
 Deletes an existing spot.
 
@@ -658,17 +741,107 @@ Deletes an existing spot.
     - Content-Type: application/json
   - Body:
 
+        ```json
+        {
+          "message": "Spot couldn't be found"
+        }
+        ```
+
+    </details>
+
+##
+
+<!-- //# REVIEWS------------------------------------------------- -->
+<!-- //# ------------------------------------------------- -->
+
+<details>
+<summary style="font-size:1.3em; font-weight: bold">Reviews</summary>
+
+### ✅Create a Review for a Spot based on the Spot's id
+
+<!-- I moved this up, it was below get all reviews by spotid -->
+
+Create and return a new review for a spot specified by id.
+
+- Require Authentication: true
+- Request
+
+  - Method: POST
+  - URL: /api/spots/:spotId/reviews
+  - Headers:
+    - Content-Type: application/json
+  - Body:
+
+    ```json
+    {
+      "review": "This was an awesome spot!",
+      "stars": 5
+    }
+    ```
+
+- Successful Response
+
+  - Status Code: 201
+  - Headers:
+    - Content-Type: application/json
+  - Body:
+
+    ```json
+    {
+      "id": 1,
+      "userId": 1,
+      "spotId": 1,
+      "review": "This was an awesome spot!",
+      "stars": 5,
+      "createdAt": "2021-11-19 20:39:36",
+      "updatedAt": "2021-11-19 20:39:36"
+    }
+    ```
+
+- Error Response: Body validation errors
+
+  - Status Code: 400
+  - Headers:
+    - Content-Type: application/json
+  - Body:
+
+    ```json
+    {
+      "message": "Bad Request", // (or "Validation error" if generated by Sequelize),
+      "errors": {
+        "review": "Review text is required",
+        "stars": "Stars must be an integer from 1 to 5"
+      }
+    }
+    ```
+
+- Error response: Couldn't find a Spot with the specified id
+
+  - Status Code: 404
+  - Headers:
+    - Content-Type: application/json
+  - Body:
+
     ```json
     {
       "message": "Spot couldn't be found"
     }
     ```
 
-## REVIEWS
-<!-- //# ------------------------------------------------- -->
-<!-- //# ------------------------------------------------- -->
+- Error response: Review from the current user already exists for the Spot
 
-### Get all Reviews of the Current User
+  - Status Code: 500
+  - Headers:
+    - Content-Type: application/json
+  - Body:
+
+    ```json
+    {
+      "message": "User already has a review for this spot"
+    }
+    ```
+
+### ✅Get all Reviews of the Current User
 
 Returns all the reviews written by the current user.
 
@@ -781,88 +954,6 @@ Returns all the reviews that belong to a spot specified by id.
     ```json
     {
       "message": "Spot couldn't be found"
-    }
-    ```
-
-### Create a Review for a Spot based on the Spot's id
-
-Create and return a new review for a spot specified by id.
-
-- Require Authentication: true
-- Request
-
-  - Method: POST
-  - URL: /api/spots/:spotId/reviews
-  - Headers:
-    - Content-Type: application/json
-  - Body:
-
-    ```json
-    {
-      "review": "This was an awesome spot!",
-      "stars": 5
-    }
-    ```
-
-- Successful Response
-
-  - Status Code: 201
-  - Headers:
-    - Content-Type: application/json
-  - Body:
-
-    ```json
-    {
-      "id": 1,
-      "userId": 1,
-      "spotId": 1,
-      "review": "This was an awesome spot!",
-      "stars": 5,
-      "createdAt": "2021-11-19 20:39:36",
-      "updatedAt": "2021-11-19 20:39:36"
-    }
-    ```
-
-- Error Response: Body validation errors
-
-  - Status Code: 400
-  - Headers:
-    - Content-Type: application/json
-  - Body:
-
-    ```json
-    {
-      "message": "Bad Request", // (or "Validation error" if generated by Sequelize),
-      "errors": {
-        "review": "Review text is required",
-        "stars": "Stars must be an integer from 1 to 5"
-      }
-    }
-    ```
-
-- Error response: Couldn't find a Spot with the specified id
-
-  - Status Code: 404
-  - Headers:
-    - Content-Type: application/json
-  - Body:
-
-    ```json
-    {
-      "message": "Spot couldn't be found"
-    }
-    ```
-
-- Error response: Review from the current user already exists for the Spot
-
-  - Status Code: 500
-  - Headers:
-    - Content-Type: application/json
-  - Body:
-
-    ```json
-    {
-      "message": "User already has a review for this spot"
     }
     ```
 
@@ -1035,9 +1126,19 @@ Delete an existing review.
     }
     ```
 
-## BOOKINGS
+  ```
+
+  ```
+
+  </details>
+
+##
+
+<!-- //# BOOKINGS------------------------------------------------- -->
 <!-- //# ------------------------------------------------- -->
-<!-- //# ------------------------------------------------- -->
+
+<details>
+<summary style="font-size:1.3em; font-weight: bold">Bookings</summary>
 
 ### Get all of the Current User's Bookings
 
@@ -1386,14 +1487,21 @@ Delete an existing booking.
     - Content-Type: application/json
   - Body:
 
-    ```json
-    {
-      "message": "Bookings that have been started can't be deleted"
-    }
-    ```
+        ```json
+        {
+          "message": "Bookings that have been started can't be deleted"
+        }
+        ```
 
-## IMAGES
-<!-- //# ------------------------------------------------- -->
+    </details>
+
+##
+
+<!-- //# IMAGES------------------------------------------------- -->
+<!-- //# IMAGES------------------------------------------------- -->
+
+<details>
+<summary style="font-size:1.3em; font-weight: bold">Images</summary>
 
 ### Delete a Spot Image
 
@@ -1471,8 +1579,12 @@ Delete an existing image for a Review.
     }
     ```
 
-## Add Query Filters to Get All Spots
-<!-- //# ------------------------------------------------- -->
+##
+
+<!-- //# Add Query Filters to Get All Spots------------------------------------------------- -->
+
+<details>
+<summary style="font-size:1.3em; font-weight: bold">Add Query Filters to Get All Spots</summary>
 
 Return spots filtered by query parameters.
 
@@ -1532,18 +1644,20 @@ Return spots filtered by query parameters.
     - Content-Type: application/json
   - Body:
 
-    ```json
-    {
-      "message": "Bad Request", // (or "Validation error" if generated by Sequelize),
-      "errors": {
-        "page": "Page must be greater than or equal to 1",
-        "size": "Size must be greater than or equal to 1",
-        "maxLat": "Maximum latitude is invalid",
-        "minLat": "Minimum latitude is invalid",
-        "minLng": "Maximum longitude is invalid",
-        "maxLng": "Minimum longitude is invalid",
-        "minPrice": "Minimum price must be greater than or equal to 0",
-        "maxPrice": "Maximum price must be greater than or equal to 0"
-      }
-    }
-    ```
+        ```json
+        {
+          "message": "Bad Request", // (or "Validation error" if generated by Sequelize),
+          "errors": {
+            "page": "Page must be greater than or equal to 1",
+            "size": "Size must be greater than or equal to 1",
+            "maxLat": "Maximum latitude is invalid",
+            "minLat": "Minimum latitude is invalid",
+            "minLng": "Maximum longitude is invalid",
+            "maxLng": "Minimum longitude is invalid",
+            "minPrice": "Minimum price must be greater than or equal to 0",
+            "maxPrice": "Maximum price must be greater than or equal to 0"
+          }
+        }
+        ```
+
+    </details>
