@@ -1,9 +1,9 @@
 const { check, validationResult } = require("express-validator");
 const { Image, Review, Spot, User, Sequelize } = require("../db/models");
 
-
 // middleware for formatting errors from express-validator middleware
 // (to customize, see express-validator's documentation)
+//? handleValidationErrors is called as the last middleware for a route, so that any other validators that have added errors to the stack can be read and processed. a really handy and beautiful piece of code.
 const handleValidationErrors = (req, _res, next) => {
     const validationErrors = validationResult(req);
 
@@ -44,46 +44,67 @@ const validateSpot = [
     check("price").isFloat().withMessage("Price per day is required"),
 ];
 
-const validateSpotId = async (req, res, next) => {
-    const { spotId } = req.params;
-    const spot = await Spot.findByPk(spotId);
+//? old validate spotId, now made polymorphic below...🤯
+// const validateSpotId = async (req, res, next) => {
+//     const { spotId } = req.params;
+//     const spot = await Spot.findByPk(spotId);
 
-    if (!spot) {
-        return res.status(404).json({ message: "Spot couldn't be found" });
-    }
-  next();
+//     if (!spot) {
+//         return res.status(404).json({ message: "Spot couldn't be found" });
+//     }
+//   next();
+// };
+
+const validateId = (model, param, auth) => {
+    return async (req, res, next) => {
+        const id = req.params[param];
+        let clientId = null;
+        const idCheck = await model.findByPk(id);
+
+        if (!idCheck) {
+            return res.status(404).json({
+                message: `${model.name} couldn't be found`,
+            });
+        }
+
+        if (model === Spot) {
+            clientId = idCheck.ownerId;
+        } else {
+            clientId = idCheck.userId;
+        }
+
+        if (auth && clientId && clientId !== req.user.id) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+        next();
+    };
 };
 
-const validateSpotOwner = async (req, res, next) => {
-  const { spotId } = req.params;
-  const spot = await Spot.findByPk(spotId);
+//? old validate spotOwner, now made polymorphic above...🤯
+// const validateSpotOwner = async (req, res, next) => {
+//     const { spotId } = req.params;
+//     const spot = await Spot.findByPk(spotId);
 
-  // if (!spot) {
-  //   return res.status(404).json({ message: "Spot couldn't be found" });
-  // };
+//     if (spot.ownerId !== req.user.id) {
+//         return res.status(403).json({ message: "Forbidden" });
+//     }
 
-  if (spot.ownerId !== req.user.id) {
-    return res.status(403).json({ message: "Forbidden" });
-  };
-
-  // req.spot = spot;
-  next();
-};
+//     next();
+// };
 
 const validateReview = [
-  check("review")
-    .exists({ checkFalsy: true })
-    .withMessage("Review text is required"),
-  check("stars")
-    .exists({ checkFalsy: true })
-    .isInt({ min: 1, max: 5 })
-  .withMessage("Stars must be an integer from 1 to 5")
+    check("review")
+        .exists({ checkFalsy: true })
+        .withMessage("Review text is required"),
+    check("stars")
+        .exists({ checkFalsy: true })
+        .isInt({ min: 1, max: 5 })
+        .withMessage("Stars must be an integer from 1 to 5"),
 ];
 
 module.exports = {
     handleValidationErrors,
     validateSpot,
-    validateSpotId,
-    validateSpotOwner,
+    validateId,
     validateReview,
 };

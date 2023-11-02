@@ -426,7 +426,9 @@ Returns all the spots owned (created) by the current user.
     }
     ```
 
-### 🚨 Get details of a Spot from an id //? missing reviews and images
+### 🚨 Get details of a Spot from an id
+
+<!-- need to check preview null for any after first image -->
 
 Returns the details of a spot specified by its id.
 
@@ -841,7 +843,9 @@ Create and return a new review for a spot specified by id.
     }
     ```
 
-### ✅Get all Reviews of the Current User
+### ✅🚨Get all Reviews of the Current User
+
+<!-- now returns ReviewImages, but im still not handling previewImage fully anywhere, multiple, edge cases -->
 
 Returns all the reviews written by the current user.
 
@@ -899,7 +903,7 @@ Returns all the reviews written by the current user.
     }
     ```
 
-### Get all Reviews by a Spot's id
+### ✅Get all Reviews by a Spot's id
 
 Returns all the reviews that belong to a spot specified by id.
 
@@ -957,7 +961,7 @@ Returns all the reviews that belong to a spot specified by id.
     }
     ```
 
-### Add an Image to a Review based on the Review's id
+### ✅Add an Image to a Review based on the Review's id
 
 Create and return a new image for a review specified by id.
 
@@ -1018,7 +1022,7 @@ Create and return a new image for a review specified by id.
     }
     ```
 
-### Edit a Review
+### ✅Edit a Review
 
 Update and return an existing review.
 
@@ -1088,7 +1092,7 @@ Update and return an existing review.
     }
     ```
 
-### Delete a Review
+### ✅Delete a Review
 
 Delete an existing review.
 
@@ -1586,7 +1590,7 @@ Delete an existing image for a Review.
 <details>
 <summary style="font-size:1.3em; font-weight: bold">Add Query Filters to Get All Spots</summary>
 
-Return spots filtered by query parameters.
+## Return spots filtered by query parameters.
 
 - Require Authentication: false
 - Request

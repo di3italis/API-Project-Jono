@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const {
     handleValidationErrors,
     validateSpot,
-    validateSpotId,
+    validateId,
     validateSpotOwner,
     validateReview,
 } = require("../../utils/validation");
@@ -15,33 +15,58 @@ const { Image, Review, Spot, User, Sequelize } = require("../../db/models");
 const router = express.Router();
 
 //$ ALL SPOTS - GET /api/spots
-router.get("/", async (req, res) => {
-    const allSpots = await Spot.findAll({
-        attributes: {
-            include: [
+router.get("/", async (req, res, next) => {
+    try {
+        const allSpots = await Spot.findAll({
+            attributes: [
+                "id",
+                "ownerId",
+                "address",
+                "city",
+                "state",
+                "country",
+                "lat",
+                "lng",
+                "name",
+                "description",
+                "price",
+                "createdAt",
+                "updatedAt",
                 [
                     Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
                     "avgStarRating",
                 ],
+                [
+                    Sequelize.literal(`(
+                        SELECT url FROM "Images"
+                        WHERE Images.imageableType = 'Spot'
+                        AND Images.imageableId = Spot.id
+                        AND Images.preview = true
+                        LIMIT 1
+                    )`),
+                    `previewImage`,
+                ],
             ],
-        },
-        include: [
-            {
-                model: Review,
-                attributes: [],
-            },
-            {
-                model: Image,
-                as: "SpotImages",
-                attributes: ["url"],
-                // where: { //! res.json(allSpots) === [] if(!image)
-                //     preview: true,
-                // }
-            },
-        ],
-        group: ["Spot.id"],
-    });
-    res.json(allSpots);
+            include: [
+                {
+                    model: Review,
+                    attributes: [],
+                },
+                // {
+                //     model: Image,
+                //     as: "SpotImages",
+                //     attributes: ["url"],
+                //     // where: { //! res.json(allSpots) === [] if(!image)
+                //     //     preview: true,
+                //     // }
+                // },
+            ],
+            group: ["Spot.id"],
+        });
+        res.json(allSpots);
+    } catch (err) {
+        next(err);
+    }
 });
 
 //$ CURRENT USER'S SPOTS - GET /api/spots/current
@@ -52,18 +77,61 @@ router.get("/current", requireAuth, async (req, res, next) => {
             where: {
                 ownerId: userId,
             },
+            attributes: [
+                "id",
+                "ownerId",
+                "address",
+                "city",
+                "state",
+                "country",
+                "lat",
+                "lng",
+                "name",
+                "description",
+                "price",
+                "createdAt",
+                "updatedAt",
+                [
+                    Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
+                    "avgStarRating",
+                ],
+                [
+                    Sequelize.literal(`(
+                        SELECT url FROM "Images"
+                        WHERE Images.imageableType = 'Spot'
+                        AND Images.imageableId = Spot.id
+                        AND Images.preview = true
+                        LIMIT 1
+                    )`),
+                    `previewImage`,
+                ],
+            ],
+            include: [
+                {
+                    model: Review,
+                    attributes: [],
+                },
+                // {
+                //     model: Image,
+                //     as: "SpotImages",
+                //     attributes: ["url"],
+                //     // where: { //! res.json(allSpots) === [] if(!image)
+                //     //     preview: true,
+                //     // }
+                // },
+            ],
+            group: ["Spot.id"],
         });
-        res.json({ spots });
+        res.json({ Spots: spots });
     } catch (err) {
         next(err);
     }
 });
 
-//$ GET DETAILS FOR SPOT - GET /api/spots/:spotId
-//! finish quries for reviews and images
+//$ GET DETAILS FOR A SPOT - GET /api/spots/:spotId
 router.get(
     "/:spotId",
-    validateSpotId,
+    validateId(Spot, "spotId", 0),
 
     handleValidationErrors,
     async (req, res, next) => {
@@ -71,25 +139,36 @@ router.get(
         try {
             const { spotId } = req.params;
             const spotsByID = await Spot.findByPk(spotId, {
-                attributes: {
-                    include: [
-                        [
-                            Sequelize.fn("COUNT", Sequelize.col("Reviews.id")),
-                            "numReviews",
-                        ],
-                        [
-                            Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
-                            "avgStarRating",
-                        ],
+                attributes: [
+                    "id",
+                    "ownerId",
+                    "address",
+                    "city",
+                    "state",
+                    "country",
+                    "lat",
+                    "lng",
+                    "name",
+                    "description",
+                    "price",
+                    "createdAt",
+                    "updatedAt",
+                    [
+                        Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
+                        "avgStarRating",
                     ],
-                },
+                ],
                 include: [
-                    // {
-                    //     model: Image,
-                    //     as: "SpotImages",
-                    //     attributes: ["id", "url", "preview"],
-                    //     where: { imageableType: "Spot" },
-                    // },
+                    {
+                        model: Review,
+                        attributes: [],
+                    },
+                    {
+                        model: Image,
+                        as: "SpotImages",
+                        attributes: ["id", "url", "preview"],
+                        where: { imageableType: "Spot" },
+                    },
                     {
                         model: User,
                         as: "Owner",
@@ -98,7 +177,7 @@ router.get(
                 ],
                 group: ["Spot.id", "SpotImages.id", "Owner.id"], // can't decide if I like single oor double quotes better... but i digress
             });
-            res.json({ spotsByID });
+            res.json(spotsByID);
         } catch (err) {
             next(err);
         }
@@ -154,8 +233,7 @@ router.post(
 router.post(
     "/:spotId/images",
     requireAuth,
-    validateSpotId,
-    validateSpotOwner,
+    validateId(Spot, "spotId", 1),
     handleValidationErrors,
     async (req, res, next) => {
         const { spotId } = req.params;
@@ -185,8 +263,7 @@ router.put(
     "/:spotId",
     requireAuth,
     validateSpot,
-    validateSpotId,
-    validateSpotOwner,
+    validateId(Spot, "spotId", 1),
     handleValidationErrors,
     async (req, res, next) => {
         const { spotId } = req.params;
@@ -235,8 +312,7 @@ router.put(
 router.delete(
     "/:spotId",
     requireAuth,
-    validateSpotId,
-    validateSpotOwner,
+    validateId(Spot, "spotId", 1),
     async (req, res, next) => {
         const { spotId } = req.params;
         try {
@@ -255,7 +331,7 @@ router.delete(
 router.post(
     "/:spotId/reviews",
     requireAuth,
-    validateSpotId,
+    validateId(Spot, "spotId", 0),
     validateReview,
     handleValidationErrors,
     async (req, res, next) => {
@@ -288,6 +364,47 @@ router.post(
                 message: "Validation Error",
                 errors: err.errors.map((e) => e.message),
             });
+        }
+    }
+);
+
+//$ Get Reviews of Spot ID - GET /api/reviews/spot/:spotId
+router.get(
+    "/:spotId/reviews",
+    validateId(Spot, "spotId", 0),
+    async (req, res, next) => {
+        try {
+            const spotId = req.params.spotId;
+            const spotReviews = await Review.findAll({
+                where: {
+                    spotId: spotId,
+                },
+                attributes: [
+                    "id",
+                    "userId",
+                    "spotId",
+                    "review",
+                    "stars",
+                    "createdAt",
+                    "updatedAt",
+                ],
+                include: [
+                    {
+                        model: User,
+                        as: User,
+                        attributes: ["id", "firstName", "lastName"],
+                    },
+                    {
+                        model: Image,
+                        as: "ReviewImages",
+                        attributes: ["id", "url"],
+                    },
+                ],
+                // nested: true,
+            });
+            res.status(200).json({ Reviews: spotReviews });
+        } catch (error) {
+            next(error);
         }
     }
 );
