@@ -26,7 +26,6 @@ module.exports = {
 
         // Seed Spots
         const firstUser = await User.findOne({ order: [["createdAt", "ASC"]] });
-        // console.log(firstUser);
         if (firstUser) {
             await Spot.bulkCreate([
                 {
@@ -69,19 +68,19 @@ module.exports = {
             {
                 imageableType: "Spot",
                 imageableId: 1,
-                url: "https://example.com/image1.jpg",
+                url: "https://airBarnBats.com/Spot1.jpg",
                 preview: true,
             },
             {
                 imageableType: "Review",
                 imageableId: 1,
-                url: "https://example.com/image1.jpg",
+                url: "https://airBarnBats.com/Review1.jpg",
                 preview: true,
             },
             {
                 imageableType: "User",
                 imageableId: 1,
-                url: "https://example.com/image1.jpg",
+                url: "https://airBarnBats.com/User1.jpg",
                 preview: true,
             },
         ]);

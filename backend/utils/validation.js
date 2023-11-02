@@ -1,8 +1,6 @@
 const { check, validationResult } = require("express-validator");
 const { Image, Review, Spot, User, Sequelize } = require("../db/models");
 
-// middleware for formatting errors from express-validator middleware
-// (to customize, see express-validator's documentation)
 //? handleValidationErrors is called as the last middleware for a route, so that any other validators that have added errors to the stack can be read and processed. a really handy and beautiful piece of code.
 const handleValidationErrors = (req, _res, next) => {
     const validationErrors = validationResult(req);
@@ -22,6 +20,7 @@ const handleValidationErrors = (req, _res, next) => {
     next();
 };
 
+//? checks all req.body values against constraints
 const validateSpot = [
     check("address")
         .exists({ checkFalsy: true })
@@ -55,6 +54,7 @@ const validateSpot = [
 //   next();
 // };
 
+//? validateId checks for existing record, and for authorized user role. "auth" arg is a boolean: user role authorization?
 const validateId = (model, param, auth) => {
     return async (req, res, next) => {
         const id = req.params[param];
@@ -92,6 +92,7 @@ const validateId = (model, param, auth) => {
 //     next();
 // };
 
+//? req.body constraints
 const validateReview = [
     check("review")
         .exists({ checkFalsy: true })
