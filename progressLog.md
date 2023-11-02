@@ -7,7 +7,7 @@
 ### next: continue model and migration updates
 
 ## 231101
-got through spots, started reviews, running into error that i think has to do with onDelete: Cascade not being fully implamented. its in the models, but not migrations...
+got through spots, started reviews, running into error that i think has to do with onDelete: Cascade not being fully implemented. its in the models, but not migrations...
 
 `  at async /Users/vegaprime/takashiShumamira/4-Module/API-Project/backend/routes/api/spots.js:284:13 {
   name: 'SequelizeForeignKeyConstraintError',
