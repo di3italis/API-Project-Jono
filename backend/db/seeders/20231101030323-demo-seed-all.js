@@ -41,7 +41,7 @@ module.exports = {
                     price: 123,
                 },
             ]);
-        }
+        // }
 
         // Seed Bookings
         await Booking.bulkCreate([
