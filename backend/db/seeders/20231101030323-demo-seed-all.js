@@ -25,11 +25,11 @@ module.exports = {
         );
 
         // Seed Spots
-        const firstUser = await User.findOne({ order: [["createdAt", "ASC"]] });
-        if (firstUser) {
+        // const firstUser = await User.findOne({ order: [["createdAt", "ASC"]] });
+        // if (firstUser) {
             await Spot.bulkCreate([
                 {
-                    ownerId: firstUser.id,
+                    ownerId: 1,
                     address: "123 Disney Lane",
                     city: "San Francisco",
                     state: "California",
