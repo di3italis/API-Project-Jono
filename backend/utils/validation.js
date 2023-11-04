@@ -1,10 +1,46 @@
-const { check, validationResult } = require("express-validator");
-const { Image, Review, Spot, User, Booking, Sequelize } = require("../db/models");
-const {Op} = require("sequelize");
+/*
+ 1. "express - validator" checks incoming req and adds errors to the stack.
+ 2. "validationResult" collects errors in Result object, with a formatter
+           method
+ 3. "handleValidationErrors" is called as the last middleware for a route,
+           processing the stack of errors. handy and beautiful piece of code.
+*/
 
-//? handleValidationErrors is called as the last middleware for a route, so that any other validators that have added errors to the stack can be read and processed. a really handy and beautiful piece of code.
+const { check, validationResult } = require("express-validator");
+const {
+    Image,
+    Review,
+    Spot,
+    User,
+    Booking,
+    Sequelize,
+} = require("../db/models");
+const { Op } = require("sequelize");
+
 const handleValidationErrors = (req, _res, next) => {
     const validationErrors = validationResult(req);
+
+    //# What does validationResult look like? -------------------
+    console.log(validationErrors);
+    /* EDIT REVIEW VALIDATION ERROR
+   Result {
+  formatter: [Function: formatter],
+  errors: [
+    {
+      value: '',
+      msg: 'Review text is required',
+      param: 'review',
+      location: 'body'
+    },
+    {
+      value: -3,
+      msg: 'Stars must be an integer from 1 to 5',
+      param: 'stars',
+      location: 'body'
+    }
+  ]
+}*/
+    //# --------------------------------------------------------------
 
     if (!validationErrors.isEmpty()) {
         const errors = {};
@@ -108,7 +144,7 @@ const validateReview = [
 const validateBookingInput = [
     check("startDate")
         .isISO8601()
-    //     // .isDate()
+        //     // .isDate()
         .withMessage("Start date must be a valid date"),
     check("endDate")
         .isISO8601()
@@ -124,7 +160,8 @@ const validateBookingInput = [
 
 const validateBooking = async (req, res, next) => {
     const { startDate, endDate } = req.body;
-    const { spotId } = req.params;``
+    const { spotId } = req.params;
+    ``;
 
     const conflictingBookings = await Booking.findAll({
         where: {
