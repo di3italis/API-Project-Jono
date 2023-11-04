@@ -8,9 +8,18 @@ const {
     validateId,
     validateSpotOwner,
     validateReview,
+    validateBookingInput,
+    validateBooking,
 } = require("../../utils/validation");
 const { setTokenCookie, requireAuth } = require("../../utils/auth");
-const { Image, Review, Spot, User, Sequelize } = require("../../db/models");
+const {
+    Image,
+    Review,
+    Spot,
+    User,
+    Booking,
+    Sequelize,
+} = require("../../db/models");
 
 const router = express.Router();
 
@@ -403,6 +412,94 @@ router.get(
                 // nested: true,
             });
             res.status(200).json({ Reviews: spotReviews });
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
+//# BOOKINGS--------------------------------------------------------------
+//$ Get Spot Bookings - GET /api/spots/:spotId/bookings
+router.get(
+    "/:spotId/bookings",
+    requireAuth,
+    validateId(Spot, "spotId", 0),
+    async (req, res, next) => {
+        try {
+            const { spotId } = req.params;
+            const spot = await Spot.findByPk(spotId);
+            const spotOwnerId = spot.ownerId;
+
+            if (spotOwnerId === req.user.id) {
+                const getBookings = await Booking.findAll({
+                    where: {
+                        spotId: spotId,
+                    },
+                    include: [
+                        {
+                            model: User,
+                            attributes: ["id", "firstName", "lastName"],
+                        },
+                    ],
+                });
+                const bookings = getBookings.map((booking) => {
+                    return {
+                        User: booking.User,
+                        id: booking.id,
+                        spotId: booking.spotId,
+                        userId: booking.userId,
+                        startDate: booking.startDate,
+                        endDate: booking.endDate,
+                        createdAt: booking.createdAt,
+                        updatedAt: booking.updatedAt,
+                    };
+                });
+                res.status(200).json({ message: "You are the owner of this spot", 'Bookings':bookings });
+            } else {
+                const getBookings = await Booking.findAll({
+                    where: {
+                        spotId: spotId,
+                        userId: req.user.id,
+                    },
+                    attributes: ["spotId", "startDate", "endDate"],
+                });
+                res.status(200).json({'Bookings':getBookings});
+            }
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
+//$ Create a Booking - POST /api/spots/:spotId/bookings
+router.post(
+    "/:spotId/bookings",
+    requireAuth,
+    validateBookingInput,
+    validateId(Spot, "spotId", 0),
+    validateBooking,
+    handleValidationErrors,
+    async (req, res, next) => {
+        const { spotId } = req.params;
+        const { startDate, endDate } = req.body;
+        const userId = req.user.id;
+        const spot = await Spot.findByPk(spotId);
+
+        try {
+            if (userId !== spot.ownerId) {
+                const newBooking = await Booking.create({
+                    spotId,
+                    userId,
+                    startDate,
+                    endDate,
+                });
+
+                res.status(200).json({ newBooking });
+            } else {
+                res.status(403).json({
+                    message: "Forbidden, you are the owner",
+                });
+            }
         } catch (error) {
             next(error);
         }

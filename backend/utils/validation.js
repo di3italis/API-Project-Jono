@@ -1,5 +1,6 @@
 const { check, validationResult } = require("express-validator");
-const { Image, Review, Spot, User, Sequelize } = require("../db/models");
+const { Image, Review, Spot, User, Booking, Sequelize } = require("../db/models");
+const {Op} = require("sequelize");
 
 //? handleValidationErrors is called as the last middleware for a route, so that any other validators that have added errors to the stack can be read and processed. a really handy and beautiful piece of code.
 const handleValidationErrors = (req, _res, next) => {
@@ -103,9 +104,72 @@ const validateReview = [
         .withMessage("Stars must be an integer from 1 to 5"),
 ];
 
+//? create booking - check body constraints
+const validateBookingInput = [
+    check("startDate")
+        .isISO8601()
+    //     // .isDate()
+        .withMessage("Start date must be a valid date"),
+    check("endDate")
+        .isISO8601()
+        // .isDate()
+        .withMessage("End date must be a valid date")
+        .custom((input, { req }) => {
+            if (input <= req.body.startDate) {
+                throw new Error("endDate cannot be on or before startDate");
+            }
+            return true;
+        }),
+];
+
+const validateBooking = async (req, res, next) => {
+    const { startDate, endDate } = req.body;
+    const { spotId } = req.params;``
+
+    const conflictingBookings = await Booking.findAll({
+        where: {
+            spotId: spotId,
+            [Op.or]: [
+                //? [Op.or] is an array of conditionals, checking each element for truthiness
+                {
+                    startDate: {
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
+                {
+                    endDate: {
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
+                {
+                    [Op.and]: [
+                        {
+                            startDate: { [Op.lte]: startDate },
+                        },
+                        {
+                            endDate: { [Op.gte]: endDate },
+                        },
+                    ],
+                },
+            ],
+        },
+    });
+
+    if (conflictingBookings.length) {
+        return res.status(403).json({
+            message:
+                "Sorry, this spot is already booked for the specified dates",
+        });
+    }
+
+    next();
+};
+
 module.exports = {
     handleValidationErrors,
     validateSpot,
     validateId,
     validateReview,
+    validateBookingInput,
+    validateBooking,
 };

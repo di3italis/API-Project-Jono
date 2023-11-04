@@ -31,3 +31,62 @@ got through spots, started reviews, running into error that i think has to do wi
 }
 DELETE /api/spots/1 500 26.370 ms - 1096
 `
+## 231103
+[√] spot model is missing ownerId
+
+## 231104
+how do i modify this code? I want each error to be added to the stack, so when query gets to handlValidation errors, it prints or sends all errors at once, instead of exiting the query to print the first errors it sees:
+
+// validate review
+const validateReview = [
+    check("review")
+        .exists({ checkFalsy: true })
+        .withMessage("Review text is required"),
+    check("stars")
+        .exists({ checkFalsy: true })
+        .isInt({ min: 1, max: 5 })
+        .withMessage("Stars must be an integer from 1 to 5"),
+];
+
+
+//$ Edit Review AUTH UserId - PUT /api/reviews/:reviewId
+router.put(
+    "/:reviewId",
+    requireAuth,
+    validateReview,
+    validateId(Review, "reviewId", 1),
+    handleValidationErrors,
+    async (req, res, next) => {
+        try {
+            // await validateReview(req, res, next);
+            const { reviewId } = req.params;
+            const { review, stars } = req.body;
+
+            const findReview = await Review.update(
+                {
+                    review,
+                    stars,
+                },
+                {
+                    where: {
+                        id: reviewId,
+                    },
+                }
+            );
+            const updatedReview = await Review.findByPk(reviewId);
+            const orderedReview = {
+                id: updatedReview.id,
+                userId: updatedReview.userId,
+                spotId: updatedReview.spotId,
+                review: updatedReview.review,
+                stars: updatedReview.stars,
+                createdAt: updatedReview.createdAt,
+                updatedAt: updatedReview.updatedAt,
+            };
+
+            res.status(200).json(orderedReview);
+        } catch (error) {
+            next(error);
+        }
+    }
+);

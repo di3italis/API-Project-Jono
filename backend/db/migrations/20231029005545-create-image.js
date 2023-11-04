@@ -15,7 +15,7 @@ module.exports = {
                     type: Sequelize.INTEGER,
                 },
                 imageableType: {
-                    type: Sequelize.INTEGER,
+                    type: Sequelize.STRING,
                 },
                 imageableId: {
                     type: Sequelize.INTEGER,

@@ -12,15 +12,25 @@ module.exports = (sequelize, DataTypes) => {
             Booking.belongsTo(models.Spot, {
                 foreignKey: "spotId",
                 onDelete: "CASCADE",
-            }),
-                Booking.belongsTo(models.User, {
-                    foreignKey: "userId",
-                    onDelete: "CASCADE",
-                });
+            });
+            Booking.belongsTo(models.User, {
+                foreignKey: "userId",
+                onDelete: "CASCADE",
+            });
         }
     }
     Booking.init(
         {
+            spotId: {
+                allowNul: false,
+                type: DataTypes.INTEGER,
+                references: { model: "Spots", key: "id" }, // maybe use aliases?
+            },
+            userId: {
+                allowNul: false,
+                type: DataTypes.INTEGER,
+                references: { model: "Users", key: "id" },
+            },
             startDate: {
                 type: DataTypes.DATE,
                 allowNull: false,

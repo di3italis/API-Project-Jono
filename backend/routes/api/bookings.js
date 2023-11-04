@@ -11,6 +11,7 @@ const { Booking, Spot, Review, Image, Sequelize } = require("../../db/models");
 
 const router = express.Router();
 
+//$ Get Current User Bookings - GET /api/bookings/current
 router.get("/current", requireAuth, async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -18,7 +19,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
             where: {
                 userId: userId,
             },
-            attributes: ["id", "spotId"],
+            // attributes: ["id", "spotId"],
             include: [
                 {
                     model: Spot,
@@ -65,5 +66,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
         next(error);
     }
 });
+
+
 
 module.exports = router;

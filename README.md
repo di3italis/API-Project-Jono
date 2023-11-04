@@ -125,7 +125,7 @@ correct role(s) or permission(s).
     }
     ```
 
-### Get the Current User
+### ✅Get the Current User
 
 Returns the information about the current user that is logged in.
 
@@ -168,7 +168,7 @@ Returns the information about the current user that is logged in.
     }
     ```
 
-### Log In a User
+### ✅Log In a User
 
 Logs in a current user with valid credentials and returns the current user's
 information.
@@ -238,7 +238,8 @@ information.
     }
     ```
 
-### Sign Up a User
+### 🚨Sign Up a User
+<!-- //! dup email and dup username crash -->
 
 Creates a new user, logs them in as the current user, and returns the current
 user's information.
@@ -1144,7 +1145,7 @@ Delete an existing review.
 <details>
 <summary style="font-size:1.3em; font-weight: bold">Bookings</summary>
 
-### Get all of the Current User's Bookings
+### ✅Get all of the Current User's Bookings
 
 Return all the bookings that the current user has made.
 
@@ -1191,7 +1192,7 @@ Return all the bookings that the current user has made.
     }
     ```
 
-### Get all Bookings for a Spot based on the Spot's id
+### ✅Get all Bookings for a Spot based on the Spot's id
 
 Return all the bookings for a spot specified by id.
 
