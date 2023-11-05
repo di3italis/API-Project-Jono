@@ -75,15 +75,27 @@ const validateSpot = [
     check("country")
         .exists({ checkFalsy: true })
         .withMessage("Country is required"),
-    check("lat").isFloat().withMessage("Latitude is not valid"),
-    check("lng").isFloat().withMessage("Longitude is not valid"),
+    check("lat")
+        .toFloat() // convert to float
+        .isFloat({ min: -90, max: 90 }) // validate within range
+        .withMessage("Latitude is not valid"),
+    check("lng")
+        .toFloat()
+        .isFloat({ min: -180, max: 180 })
+        .withMessage("Longitude is not valid"),
     check("name")
         .isLength({ max: 50 })
         .withMessage("Name must be less than 50 characters"),
     check("description")
         .exists({ checkFalsy: true })
         .withMessage("Description is required"),
-    check("price").isFloat().withMessage("Price per day is required"),
+    check("price")
+        .exists({ checkFalsy: true })
+        .withMessage("Price per day is required")
+        .bail()
+        .toFloat()
+        .isFloat({ min: 0 })
+        .withMessage("Price per day is not valid"),
 ];
 
 //? old validate spotId, now made polymorphic below...🤯

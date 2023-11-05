@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
             Spot.belongsTo(models.User, {
                 as: "Owner",
                 foreignKey: "ownerId",
-                onDelete: 'CASCADE',
+                onDelete: "CASCADE",
             });
 
             Spot.hasMany(models.Booking, {
@@ -67,6 +67,8 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 validate: {
                     isFloat: true,
+                    min: -90,
+                    max: 90,
                 },
             },
             lng: {
@@ -74,6 +76,8 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 validate: {
                     isFloat: true,
+                    min: -180,
+                    max: 180,
                 },
             },
             name: {
@@ -92,6 +96,7 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
                 validate: {
                     isFloat: true,
+                    min: 0,
                 },
             },
         },
