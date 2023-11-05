@@ -43,18 +43,24 @@ const handleValidationErrors = (req, _res, next) => {
     //# --------------------------------------------------------------
 
     if (!validationErrors.isEmpty()) {
-        const errors = {};
-        validationErrors
-            .array()
-            .forEach((error) => (errors[error.path] = error.msg));
+        // if error stack, create empty accumulator object, turn Result into array, reduce array into the current field of acculumlator object -> keys(params aka field) and values(array of errors)
+        const errors = validationErrors.array().reduce((accumulator, error) => {
+            if (!accumulator.param) {
+                // if accumulator doesn't have a key of error.param, create one and set it to an empty array
+                accumulator[error.param] = [];
+            }
+            accumulator[error.param].push(error.msg); // Push the new error message to the field's array
+            return accumulator;
+        }, {}); // Start with an empty accumulator object
 
         const err = Error("Bad request.");
         err.errors = errors;
         err.status = 400;
         err.title = "Bad request.";
         next(err);
+    } else {
+        next();
     }
-    next();
 };
 
 //? checks all req.body values against constraints
