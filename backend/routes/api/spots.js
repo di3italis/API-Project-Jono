@@ -48,10 +48,10 @@ router.get("/", async (req, res, next) => {
                 ],
                 [
                     Sequelize.literal(`(
-                        SELECT url FROM 'Images'
-                        WHERE 'images'.imageableType = 'Spot'
-                        AND 'images'.imageableId = Spot.id
-                        AND 'images'.preview = true
+                        SELECT url FROM images
+                        WHERE images.imageableType = 'Spot'
+                        AND images.imageableId = Spot.id
+                        AND images.preview = true
                         LIMIT 1
                     )`),
                     `previewImage`,

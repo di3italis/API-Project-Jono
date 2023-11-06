@@ -1507,7 +1507,7 @@ Delete an existing booking.
 <details>
 <summary style="font-size:1.3em; font-weight: bold">Images</summary>
 
-### Delete a Spot Image
+### ✅Delete a Spot Image
 
 Delete an existing image for a Spot.
 
@@ -1545,7 +1545,7 @@ Delete an existing image for a Spot.
     }
     ```
 
-### Delete a Review Image
+### ✅Delete a Review Image
 
 Delete an existing image for a Review.
 
