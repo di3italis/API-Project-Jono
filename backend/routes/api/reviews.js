@@ -109,13 +109,13 @@ router.post(
             // √ throw err if qty >= 11
             // √ create new image in Images table. url required. preview = false
 
-            await Image.create({
+            const newImage = await Image.create({
                 imageableType: "Review",
                 imageableId: reviewId,
                 url,
                 preview: false,
             });
-            res.status(200).json({ id: reviewId, url: url });
+            res.status(200).json({ id: newImage.id, url: url });
         } catch (error) {
             next(error);
         }

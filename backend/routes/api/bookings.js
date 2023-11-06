@@ -5,6 +5,8 @@ const bcrypt = require("bcryptjs");
 const {
     validateId,
     handleValidationErrors,
+    validateBookingInput,
+    checkAvailability,
 } = require("../../utils/validation");
 const { setTokenCookie, requireAuth } = require("../../utils/auth");
 const { Booking, Spot, Review, Image, Sequelize } = require("../../db/models");
@@ -67,6 +69,52 @@ router.get("/current", requireAuth, async (req, res, next) => {
     }
 });
 
+//$ Edit a Booking - PUT /api/bookings/:bookingId
+router.put(
+    "/:bookingId",
+    requireAuth,
+    validateId(Booking, "bookingId", "guest"),
+    validateBookingInput,
+    handleValidationErrors,
+    checkAvailability,
+    async (req, res, next) => {
+        try {
+            const bookingId = +req.params.bookingId;
+            const editBooking = await Booking.update(
+                {
+                    startDate: req.body.startDate,
+                    endDate: req.body.endDate,
+                },
+                {
+                    where: {
+                        id: bookingId,
+                    },
+                }
+            );
+            const updatedBooking = await Booking.findByPk(bookingId);
+            return res.status(200).json({ updatedBooking });
+        } catch (error) {
+            next(error);
+        }
+    }
+);
 
+//$ Delete a Booking - DELETE /api/bookings/:bookingId
+router.delete(
+    "/:bookingId",
+    validateId(Booking, "bookingId", "guest"),
+    async (req, res, next) => {
+        try {
+            const deleteBooking = await Booking.destroy({
+                where: {
+                    id: +req.params.bookingId,
+                },
+            });
+            res.status(200).json({ message: "Successfully deleted" });
+        } catch (error) {
+            next(error);
+        }
+    }
+);
 
 module.exports = router;

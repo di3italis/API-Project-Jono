@@ -152,8 +152,11 @@ const validateId = (model, param, role) => {
         if (role === "owner" && req.user.id !== record.ownerId) {
             return res.status(403).json({ message: "Forbidden" });
         }
-        if (role === "guest" && req.user.id === record.ownerId) {
-            return res.status(403).json({ message: "Forbidden" });
+        if (role === "guestBook") {
+            if (req.user.id === record.ownerId) {
+                return res.status(403).json({ message: "Forbidden" });
+            }
+            // const checkGuestBook = await Booking.
         }
         if (role === "guest" && req.user.id !== record.userId) {
             return res.status(403).json({ message: "Forbidden" });
@@ -226,7 +229,10 @@ const validateBookingInput = [
 
 const checkAvailability = async (req, res, next) => {
     const { startDate, endDate } = req.body;
-    const { spotId } = req.params;
+    const idToFind = req.params.spotId || req.params.bookingId;
+    const idParam = req.params.spotId ? 'spotId' : 'id';
+
+    // const { spotId } = req.params;
 
     // input start and end dates to check:
     const newStart = new Date(startDate);
@@ -235,7 +241,7 @@ const checkAvailability = async (req, res, next) => {
     // Find any booking(s) that conflict with newStart or newEnd
     const conflictingBookings = await Booking.findAll({
         where: {
-            spotId: spotId,
+            [idParam]: idToFind,
             [Op.or]: [
                 {
                     startDate: {
@@ -318,6 +324,5 @@ module.exports = {
     validateId,
     validateReview,
     validateBookingInput,
-    // validateBooking,
     checkAvailability,
 };

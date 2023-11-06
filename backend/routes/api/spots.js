@@ -480,7 +480,7 @@ router.post(
     "/:spotId/bookings",
     requireAuth,
     validateBookingInput,
-    validateId(Spot, "spotId", "guest"),
+    validateId(Spot, "spotId", "guestBook"),
     checkAvailability,
     handleValidationErrors,
     async (req, res, next) => {
