@@ -49,16 +49,24 @@ router.get("/", async (req, res, next) => {
                 [
                     Sequelize.fn(
                         "COALESCE",
-                        Sequelize.fn(
-                            "MAX",
-                            Sequelize.literal(
-                                "(CASE WHEN images.preview THEN images.url ELSE NULL END)"
-                            )
-                        ),
+                        Sequelize.fn("MAX", Sequelize.col("SpotImages.url")),
                         null
                     ),
                     "previewImage",
                 ],
+                // [
+                //     Sequelize.fn(
+                //         "COALESCE",
+                //         Sequelize.fn(
+                //             "MAX",
+                //             Sequelize.literal(
+                //                 "(CASE WHEN images.preview THEN images.url ELSE NULL END)"
+                //             )
+                //         ),
+                //         null
+                //     ),
+                //     "previewImage",
+                // ],
             ],
             include: [
                 {
@@ -83,7 +91,7 @@ router.get("/", async (req, res, next) => {
                 //     // }
                 // },
             ],
-            group: ['Spot.id', 'Image.id'],
+            group: ["Spot.id", "Image.id"],
         });
         res.json(allSpots);
     } catch (err) {
