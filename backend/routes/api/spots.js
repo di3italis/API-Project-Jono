@@ -26,8 +26,52 @@ const router = express.Router();
 
 //$ ALL SPOTS - GET /api/spots
 router.get("/", async (req, res, next) => {
+    const page = req.query.page ? parseInt(req.query.page) : 1;
+    const size = req.query.size ? parseInt(req.query.size) : 20;
+    const pagination = {};
+
+    if (page < 1 || page > 10) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors: {
+                page: "Page must be greater than or equal to 1 and less than or equal to 10",
+            },
+        });
+    }
+
+    if (size < 1 || size > 20) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors: {
+                size: "Size must be greater than or equal to 1 and less than or equal to 20",
+            },
+        });
+    }
+
+    pagination.limit = size;
+    pagination.offset = (page - 1) * size;
+
+    const where = {};
+    const priceFilter = {};
+
+    if (req.query.minLat)
+        where.lat = { [Sequelize.Op.gte]: parseFloat(req.query.minLat) };
+    if (req.query.maxLat)
+        where.lat = { [Sequelize.Op.lte]: parseFloat(req.query.maxLat) };
+    if (req.query.minLng)
+        where.lng = { [Sequelize.Op.gte]: parseFloat(req.query.minLng) };
+    if (req.query.maxLng)
+        where.lng = { [Sequelize.Op.lte]: parseFloat(req.query.maxLng) };
+    if (req.query.minPrice)
+        priceFilter[Sequelize.Op.gte] = parseFloat(req.query.minPrice);
+    if (req.query.maxPrice)
+        priceFilter[Sequelize.Op.lte] = parseFloat(req.query.maxPrice);
+    if (Object.keys(priceFilter).length) where.price = priceFilter;
+
     try {
         const allSpots = await Spot.findAll({
+            where,
+            ...pagination,
             attributes: [
                 "id",
                 "ownerId",
@@ -44,7 +88,7 @@ router.get("/", async (req, res, next) => {
                 "updatedAt",
                 [
                     Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
-                    "avgStarRating",
+                    "avgRating",
                 ],
                 [
                     Sequelize.fn(
@@ -54,19 +98,6 @@ router.get("/", async (req, res, next) => {
                     ),
                     "previewImage",
                 ],
-                // [
-                //     Sequelize.fn(
-                //         "COALESCE",
-                //         Sequelize.fn(
-                //             "MAX",
-                //             Sequelize.literal(
-                //                 "(CASE WHEN images.preview THEN images.url ELSE NULL END)"
-                //             )
-                //         ),
-                //         null
-                //     ),
-                //     "previewImage",
-                // ],
             ],
             include: [
                 {
@@ -81,24 +112,98 @@ router.get("/", async (req, res, next) => {
                         imageableType: "Spot",
                         preview: true,
                     },
-                    required: false, // This allows spots without images to still be included
+                    required: false,
                 },
-                // {
-                //     model: Image,
-                //     as: "SpotImages",
-                //     attributes: ["url"],
-                //     // where: { //! res.json(allSpots) === [] if(!image)
-                //     //     preview: true,
-                //     // }
-                // },
             ],
-            group: ["Spot.id", "Image.id"],
+            group: ["Spot.id", "SpotImages.id"],
+            order: [["createdAt", "DESC"]],
         });
-        res.json(allSpots);
+
+        res.status(200).json({
+            Spots: allSpots,
+            page,
+            size,
+        });
     } catch (err) {
         next(err);
     }
 });
+
+
+// router.get("/", async (req, res, next) => {
+//     try {
+//         const allSpots = await Spot.findAll({
+//             attributes: [
+//                 "id",
+//                 "ownerId",
+//                 "address",
+//                 "city",
+//                 "state",
+//                 "country",
+//                 "lat",
+//                 "lng",
+//                 "name",
+//                 "description",
+//                 "price",
+//                 "createdAt",
+//                 "updatedAt",
+//                 [
+//                     Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
+//                     "avgStarRating",
+//                 ],
+//                 [
+//                     Sequelize.fn(
+//                         "COALESCE",
+//                         Sequelize.fn("MAX", Sequelize.col("SpotImages.url")),
+//                         null
+//                     ),
+//                     "previewImage",
+//                 ],
+//                 // [
+//                 //     Sequelize.fn(
+//                 //         "COALESCE",
+//                 //         Sequelize.fn(
+//                 //             "MAX",
+//                 //             Sequelize.literal(
+//                 //                 "(CASE WHEN images.preview THEN images.url ELSE NULL END)"
+//                 //             )
+//                 //         ),
+//                 //         null
+//                 //     ),
+//                 //     "previewImage",
+//                 // ],
+//             ],
+//             include: [
+//                 {
+//                     model: Review,
+//                     attributes: [],
+//                 },
+//                 {
+//                     model: Image,
+//                     as: "SpotImages",
+//                     attributes: [],
+//                     where: {
+//                         imageableType: "Spot",
+//                         preview: true,
+//                     },
+//                     required: false, // This allows spots without images to still be included
+//                 },
+//                 // {
+//                 //     model: Image,
+//                 //     as: "SpotImages",
+//                 //     attributes: ["url"],
+//                 //     // where: { //! res.json(allSpots) === [] if(!image)
+//                 //     //     preview: true,
+//                 //     // }
+//                 // },
+//             ],
+//             group: ["Spot.id", "Image.id"],
+//         });
+//         res.json(allSpots);
+//     } catch (err) {
+//         next(err);
+//     }
+// });
 
 //$ CURRENT USER'S SPOTS - GET /api/spots/current
 router.get("/current", requireAuth, async (req, res, next) => {
