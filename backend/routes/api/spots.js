@@ -49,7 +49,7 @@ router.get("/", async (req, res, next) => {
                 [
                     Sequelize.fn(
                         "COALESCE",
-                        Sequelize.fn("MAX", Sequelize.col("Images.url")),
+                        Sequelize.fn("MAX", Sequelize.col("SpotImages.url")),
                         null
                     ),
                     "previewImage",
@@ -75,6 +75,7 @@ router.get("/", async (req, res, next) => {
                 },
                 {
                     model: Image,
+                    as: "SpotImages",
                     attributes: [],
                     where: {
                         imageableType: "Spot",
@@ -128,7 +129,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 [
                     Sequelize.fn(
                         "COALESCE",
-                        Sequelize.fn("MAX", Sequelize.col("Images.url")),
+                        Sequelize.fn("MAX", Sequelize.col("SpotImages.url")),
                         null
                     ),
                     "previewImage",
@@ -148,6 +149,16 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 {
                     model: Review,
                     attributes: [],
+                },
+                {
+                    model: Image,
+                   as: "SpotImages",
+                    attributes: [],
+                    where: {
+                        imageableType: "Spot",
+                        preview: true,
+                    },
+                    required: false, // This allows spots without images to still be included
                 },
                 // {
                 //     model: Image,
