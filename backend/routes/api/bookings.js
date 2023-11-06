@@ -37,15 +37,26 @@ router.get("/current", requireAuth, async (req, res, next) => {
                         "name",
                         "price",
                         [
-                            Sequelize.literal(`(
-                        SELECT url FROM images
-                        WHERE Images.imageableType = 'Spot'
-                        AND images.imageableId = Spot.id
-                        AND images.preview = true
-                        LIMIT 1
-                    )`),
-                            `previewImage`,
+                            Sequelize.fn(
+                                "COALESCE",
+                                Sequelize.fn(
+                                    "MAX",
+                                    Sequelize.col("SpotImages.url")
+                                ),
+                                null
+                            ),
+                            "previewImage",
                         ],
+                        //     [
+                        //         Sequelize.literal(`(
+                        //     SELECT url FROM images
+                        //     WHERE Images.imageableType = 'Spot'
+                        //     AND images.imageableId = Spot.id
+                        //     AND images.preview = true
+                        //     LIMIT 1
+                        // )`),
+                        //         `previewImage`,
+                        //     ],
                     ],
                 },
             ],
