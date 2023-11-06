@@ -47,20 +47,32 @@ router.get("/", async (req, res, next) => {
                     "avgStarRating",
                 ],
                 [
-                    Sequelize.literal(`(
-                        SELECT url FROM images
-                        WHERE images.imageableType = 'Spot'
-                        AND images.imageableId = Spot.id
-                        AND images.preview = true
-                        LIMIT 1
-                    )`),
-                    `previewImage`,
+                    Sequelize.fn(
+                        "COALESCE",
+                        Sequelize.fn(
+                            "MAX",
+                            Sequelize.literal(
+                                "(CASE WHEN images.preview THEN images.url ELSE NULL END)"
+                            )
+                        ),
+                        null
+                    ),
+                    "previewImage",
                 ],
             ],
             include: [
                 {
                     model: Review,
                     attributes: [],
+                },
+                {
+                    model: Image,
+                    attributes: [],
+                    where: {
+                        imageableType: "Spot",
+                        preview: true,
+                    },
+                    required: false, // This allows spots without images to still be included
                 },
                 // {
                 //     model: Image,
@@ -71,7 +83,7 @@ router.get("/", async (req, res, next) => {
                 //     // }
                 // },
             ],
-            group: ["Spot.id"],
+            group: ['Spot.id', 'Image.id'],
         });
         res.json(allSpots);
     } catch (err) {
