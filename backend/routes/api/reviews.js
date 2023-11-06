@@ -54,8 +54,8 @@ router.get("/current", requireAuth, async (req, res, next) => {
                             // AND Images.preview = true //!put this before LIMIT 1
                             Sequelize.literal(`(
                         SELECT url FROM "Images"
-                        WHERE Images.imageableType = 'Spot'
-                        AND Images.imageableId = Spot.id
+                        WHERE "Images".imageableType = 'Spot'
+                        AND "Images".imageableId = Spot.id
                         LIMIT 1
                     )`),
                             `previewImage`,
@@ -176,9 +176,9 @@ router.delete(
             const deleteReview = await Review.destroy({
                 where: {
                     id: reviewId,
-                }
+                },
             });
-            res.status(200).json( {"message": "Successfully deleted"})
+            res.status(200).json({ message: "Successfully deleted" });
         } catch (error) {
             next(error);
         }
