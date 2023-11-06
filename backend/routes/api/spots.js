@@ -49,7 +49,7 @@ router.get("/", async (req, res, next) => {
                 [
                     Sequelize.fn(
                         "COALESCE",
-                        Sequelize.fn("MAX", Sequelize.col("SpotImages.url")),
+                        Sequelize.fn("MAX", Sequelize.col("Images.url")),
                         null
                     ),
                     "previewImage",
