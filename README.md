@@ -88,7 +88,7 @@
 <!-- //# ---------------------------------------- -->
 <!-- //# ---------------------------------------- -->
 
-### All endpoints that require authentication
+### ✅All endpoints that require authentication
 
 All endpoints that require a current user to be logged in.
 
@@ -106,7 +106,7 @@ All endpoints that require a current user to be logged in.
     }
     ```
 
-### All endpoints that require proper authorization
+### ✅All endpoints that require proper authorization
 
 All endpoints that require authentication and the current user does not have the
 correct role(s) or permission(s).
@@ -238,8 +238,7 @@ information.
     }
     ```
 
-### 🚨Sign Up a User
-<!-- //! dup email and dup username crash -->
+### ✅Sign Up a User
 
 Creates a new user, logs them in as the current user, and returns the current
 user's information.
@@ -1263,7 +1262,7 @@ Return all the bookings for a spot specified by id.
     }
     ```
 
-### Create a Booking from a Spot based on the Spot's id
+### ✅Create a Booking from a Spot based on the Spot's id
 
 Create and return a new booking from a spot specified by id.
 

@@ -6,7 +6,7 @@
            processing the stack of errors. handy and beautiful piece of code.
 */
 
-const { check, validationResult } = require("express-validator");
+const { check, body, validationResult } = require("express-validator");
 const {
     Image,
     Review,
@@ -15,13 +15,13 @@ const {
     Booking,
     Sequelize,
 } = require("../db/models");
-const { Op } = require("sequelize");
+const { Op, NOW } = require("sequelize");
 
 const handleValidationErrors = (req, _res, next) => {
     const validationErrors = validationResult(req);
 
     //# What does validationResult look like? -------------------
-    console.log(validationErrors);
+    // console.log(validationErrors);
     /* EDIT REVIEW VALIDATION ERROR
    Result {
   formatter: [Function: formatter],
@@ -62,6 +62,28 @@ const handleValidationErrors = (req, _res, next) => {
         next();
     }
 };
+
+const validateUser = [
+    body("firstName", "First Name is required").not().isEmpty(),
+    body("lastName", "Last Name is required").not().isEmpty(),
+    body("email", "Invalid email").isEmail(),
+    //   body('email').custom(async (email) => {
+    //     const existingUser = await User.findOne({ where: { email } });
+    //     if (existingUser) {
+    //       return Promise.reject('User with that email already exists');
+    //     }
+    //   }),
+    body("username", "Username is required").not().isEmpty(),
+    //   body('username').custom(async (username) => {
+    //     const existingUser = await User.findOne({ where: { username } });
+    //     if (existingUser) {
+    //       return Promise.reject('User with that username already exists');
+    //     }
+    //   }),
+    body("password", "Password must be 6 or more characters long").isLength({
+        min: 6,
+    }),
+];
 
 //? checks all req.body values against constraints
 const validateSpot = [
@@ -110,25 +132,30 @@ const validateSpot = [
 // };
 
 //? validateId checks for existing record, and for authorized user role. "auth" arg is a boolean: user role authorization?
-const validateId = (model, param, auth) => {
+const validateId = (model, param, role) => {
+    // auth determines who needs to be filtered
     return async (req, res, next) => {
         const id = req.params[param];
         let clientId = null;
-        const idCheck = await model.findByPk(id);
+        const record = await model.findByPk(id);
 
-        if (!idCheck) {
+        if (!record) {
             return res.status(404).json({
                 message: `${model.name} couldn't be found`,
             });
         }
 
-        if (model === Spot) {
-            clientId = idCheck.ownerId;
-        } else {
-            clientId = idCheck.userId;
+        if (role === "open") {
+            return next();
         }
 
-        if (auth && clientId && clientId !== req.user.id) {
+        if (role === "owner" && req.user.id !== record.ownerId) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+        if (role === "guest" && req.user.id === record.ownerId) {
+            return res.status(403).json({ message: "Forbidden" });
+        }
+        if (role === "guest" && req.user.id !== record.userId) {
             return res.status(403).json({ message: "Forbidden" });
         }
         next();
@@ -163,46 +190,82 @@ const validateBookingInput = [
     check("startDate")
         .isISO8601()
         //     // .isDate()
-        .withMessage("Start date must be a valid date"),
+        .withMessage("Start date must be a valid date")
+        .bail()
+        .custom((input) => {
+            const now = new Date();
+            const newStart = new Date(input);
+
+            if (newStart < now) {
+                throw new Error("startDate cannot be in the past");
+            }
+            return true;
+        }),
+
     check("endDate")
         .isISO8601()
         // .isDate()
         .withMessage("End date must be a valid date")
+        .bail()
         .custom((input, { req }) => {
             if (input <= req.body.startDate) {
                 throw new Error("endDate cannot be on or before startDate");
             }
             return true;
+        })
+        .custom((input) => {
+            const now = new Date();
+            const newStart = new Date(input);
+
+            if (newStart < now) {
+                throw new Error("endDate cannot be in the past");
+            }
+            return true;
         }),
 ];
 
-const validateBooking = async (req, res, next) => {
+const checkAvailability = async (req, res, next) => {
     const { startDate, endDate } = req.body;
     const { spotId } = req.params;
-    ``;
 
+    // input start and end dates to check:
+    const newStart = new Date(startDate);
+    const newEnd = new Date(endDate);
+
+    // Find any booking(s) that conflict with newStart or newEnd
     const conflictingBookings = await Booking.findAll({
         where: {
             spotId: spotId,
             [Op.or]: [
-                //? [Op.or] is an array of conditionals, checking each element for truthiness
                 {
                     startDate: {
-                        [Op.between]: [startDate, endDate],
+                        [Op.lte]: newEnd,
+                    },
+                    endDate: {
+                        [Op.gte]: newStart,
+                    },
+                },
+                {
+                    startDate: {
+                        [Op.between]: [newStart, newEnd],
                     },
                 },
                 {
                     endDate: {
-                        [Op.between]: [startDate, endDate],
+                        [Op.between]: [newStart, newEnd],
                     },
                 },
                 {
                     [Op.and]: [
                         {
-                            startDate: { [Op.lte]: startDate },
+                            startDate: {
+                                [Op.lte]: newEnd,
+                            },
                         },
                         {
-                            endDate: { [Op.gte]: endDate },
+                            endDate: {
+                                [Op.gte]: newStart,
+                            },
                         },
                     ],
                 },
@@ -210,21 +273,51 @@ const validateBooking = async (req, res, next) => {
         },
     });
 
-    if (conflictingBookings.length) {
-        return res.status(403).json({
-            message:
-                "Sorry, this spot is already booked for the specified dates",
+    // If there are conflicting bookings, return an error
+    if (conflictingBookings.length > 0) {
+        const errors = {};
+        conflictingBookings.forEach((booking) => {
+            if (newStart < booking.startDate && newEnd > booking.endDate) {
+                errors.surroundingBooking =
+                    "Requested dates surround an existing booking.";
+            } else {
+                if (
+                    newStart <= booking.endDate &&
+                    newStart >= booking.startDate
+                ) {
+                    errors.startDate =
+                        "Start date conflicts with an existing booking";
+                }
+                if (newEnd >= booking.startDate && newEnd <= booking.endDate) {
+                    errors.endDate =
+                        "End date conflicts with an existing booking";
+                }
+            }
         });
+
+        // If the errors object has errors, pass them to handleValidation
+        if (Object.keys(errors).length > 0) {
+            const err = new Error(
+                "Sorry, this spot is already booked for the specified dates"
+            );
+            err.status = 403;
+            err.errors = errors;
+            next(err); // Pass the error to the next error-handling middleware
+            return; // Prevent further execution
+        }
     }
 
+    // If there are no conflicts, proceed to the next middleware
     next();
 };
 
 module.exports = {
     handleValidationErrors,
+    validateUser,
     validateSpot,
     validateId,
     validateReview,
     validateBookingInput,
-    validateBooking,
+    // validateBooking,
+    checkAvailability,
 };

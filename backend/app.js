@@ -75,12 +75,28 @@ app.use((err, _req, _res, next) => {
 app.use((err, _req, res, _next) => {
     res.status(err.status || 500);
     console.error(err);
-    res.json({
-        title: err.title || "Server Error",
-        message: err.message,
-        errors: err.errors,
-        stack: isProduction ? null : err.stack,
-    });
+    // Check if it's a booking availability error and format the response
+    if (err.status === 403 && err.errors) {
+        // Respond with a structured error for booking conflicts
+        res.json({
+            message: err.message, // Custom message for booking conflicts
+            errors: err.errors, // Detailed errors
+        });
+    } else {
+        // Respond with a general error format for all other types of errors
+        res.json({
+            title: err.title || "Server Error",
+            message: err.message,
+            errors: err.errors, // Validation or other errors
+            stack: isProduction ? null : err.stack, // Include stack trace if not in production
+        });
+    }
+    // res.json({
+    //     title: err.title || "Server Error",
+    //     message: err.message,
+    //     errors: err.errors,
+    //     stack: isProduction ? null : err.stack,
+    // });
 });
 
 module.exports = app;

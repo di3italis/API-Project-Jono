@@ -10,6 +10,7 @@ const {
     validateReview,
     validateBookingInput,
     validateBooking,
+    checkAvailability,
 } = require("../../utils/validation");
 const { setTokenCookie, requireAuth } = require("../../utils/auth");
 const {
@@ -140,7 +141,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
 //$ GET DETAILS FOR A SPOT - GET /api/spots/:spotId
 router.get(
     "/:spotId",
-    validateId(Spot, "spotId", 0),
+    validateId(Spot, "spotId", "open"),
 
     handleValidationErrors,
     async (req, res, next) => {
@@ -242,7 +243,7 @@ router.post(
 router.post(
     "/:spotId/images",
     requireAuth,
-    validateId(Spot, "spotId", 1),
+    validateId(Spot, "spotId", "owner"),
     handleValidationErrors,
     async (req, res, next) => {
         const { spotId } = req.params;
@@ -272,7 +273,7 @@ router.put(
     "/:spotId",
     requireAuth,
     validateSpot,
-    validateId(Spot, "spotId", 1),
+    validateId(Spot, "spotId", "owner"),
     handleValidationErrors,
     async (req, res, next) => {
         const { spotId } = req.params;
@@ -321,7 +322,7 @@ router.put(
 router.delete(
     "/:spotId",
     requireAuth,
-    validateId(Spot, "spotId", 1),
+    validateId(Spot, "spotId", "owner"),
     async (req, res, next) => {
         const { spotId } = req.params;
         try {
@@ -340,7 +341,7 @@ router.delete(
 router.post(
     "/:spotId/reviews",
     requireAuth,
-    validateId(Spot, "spotId", 0),
+    validateId(Spot, "spotId", "open"),
     validateReview,
     handleValidationErrors,
     async (req, res, next) => {
@@ -380,7 +381,7 @@ router.post(
 //$ Get Reviews of Spot ID - GET /api/reviews/spot/:spotId
 router.get(
     "/:spotId/reviews",
-    validateId(Spot, "spotId", 0),
+    validateId(Spot, "spotId", "open"),
     async (req, res, next) => {
         try {
             const spotId = req.params.spotId;
@@ -423,7 +424,7 @@ router.get(
 router.get(
     "/:spotId/bookings",
     requireAuth,
-    validateId(Spot, "spotId", 0),
+    validateId(Spot, "spotId", "open"),
     async (req, res, next) => {
         try {
             const { spotId } = req.params;
@@ -454,7 +455,10 @@ router.get(
                         updatedAt: booking.updatedAt,
                     };
                 });
-                res.status(200).json({ message: "You are the owner of this spot", 'Bookings':bookings });
+                res.status(200).json({
+                    message: "You are the owner of this spot",
+                    Bookings: bookings,
+                });
             } else {
                 const getBookings = await Booking.findAll({
                     where: {
@@ -463,7 +467,7 @@ router.get(
                     },
                     attributes: ["spotId", "startDate", "endDate"],
                 });
-                res.status(200).json({'Bookings':getBookings});
+                res.status(200).json({ Bookings: getBookings });
             }
         } catch (error) {
             next(error);
@@ -476,32 +480,25 @@ router.post(
     "/:spotId/bookings",
     requireAuth,
     validateBookingInput,
-    validateId(Spot, "spotId", 0),
-    validateBooking,
+    validateId(Spot, "spotId", "guest"),
+    checkAvailability,
     handleValidationErrors,
     async (req, res, next) => {
-        const { spotId } = req.params;
-        const { startDate, endDate } = req.body;
-        const userId = req.user.id;
-        const spot = await Spot.findByPk(spotId);
-
         try {
-            if (userId !== spot.ownerId) {
-                const newBooking = await Booking.create({
-                    spotId,
-                    userId,
-                    startDate,
-                    endDate,
-                });
-
-                res.status(200).json({ newBooking });
-            } else {
-                res.status(403).json({
-                    message: "Forbidden, you are the owner",
-                });
-            }
+            const spotId = +req.params.spotId; // parse param to int
+            // Assuming user is authenticated and req.user is available
+            const newBooking = await Booking.create({
+                spotId: spotId,
+                userId: req.user.id,
+                startDate: req.body.startDate,
+                endDate: req.body.endDate,
+            });
+            return res.status(200).json(newBooking);
         } catch (error) {
-            next(error);
+            // Handle Sequelize validation error or other errors
+            return res
+                .status(400)
+                .json({ message: "Validation error", errors: error.errors });
         }
     }
 );

@@ -27,20 +27,32 @@ module.exports = {
         // Seed Spots
         // const firstUser = await User.findOne({ order: [["createdAt", "ASC"]] });
         // if (firstUser) {
-            await Spot.bulkCreate([
-                {
-                    ownerId: 1,
-                    address: "123 Disney Lane",
-                    city: "San Francisco",
-                    state: "California",
-                    country: "United States of America",
-                    lat: 37.7645358,
-                    lng: -122.4730327,
-                    name: "App Academy",
-                    description: "Place where web developers are created",
-                    price: 123,
-                },
-            ]);
+        await Spot.bulkCreate([
+            {
+                ownerId: 1,
+                address: "123 Disney Lane",
+                city: "San Francisco",
+                state: "California",
+                country: "United States of America",
+                lat: 37.7645358,
+                lng: -122.4730327,
+                name: "App Academy",
+                description: "Place where web developers are created",
+                price: 123,
+            },
+            {
+                ownerId: 2,
+                address: "321 Vito Place",
+                city: "Paris",
+                state: "Texas",
+                country: "United States of America",
+                lat: 33.6609,
+                lng: -95.5555,
+                name: "Wim Wenders",
+                description: "A man reunites with family.",
+                price: 999,
+            },
+        ]);
         // }
 
         // Seed Bookings
@@ -51,15 +63,27 @@ module.exports = {
                 startDate: "2023-11-19",
                 endDate: "2023-11-20",
             },
+            {
+                spotId: 2,
+                userId: 1,
+                startDate: "2023-11-19",
+                endDate: "2024-11-20",
+            },
         ]);
 
         // Seed Reviews
         await Review.bulkCreate([
             {
                 userId: 1,
+                spotId: 2,
+                review: "This was an interesting spot.",
+                stars: 3,
+            },
+            {
+                userId: 2,
                 spotId: 1,
-                review: "This was an awesome spot!",
-                stars: 5,
+                review: "This was an dysfunctional spot.",
+                stars: 2,
             },
         ]);
 
@@ -72,8 +96,20 @@ module.exports = {
                 preview: true,
             },
             {
+                imageableType: "Spot",
+                imageableId: 2,
+                url: "https://airBarnBats.com/Spot1.jpg",
+                preview: true,
+            },
+            {
                 imageableType: "Review",
                 imageableId: 1,
+                url: "https://airBarnBats.com/Review1.jpg",
+                preview: true,
+            },
+            {
+                imageableType: "Review",
+                imageableId: 2,
                 url: "https://airBarnBats.com/Review1.jpg",
                 preview: true,
             },

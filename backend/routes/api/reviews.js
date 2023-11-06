@@ -80,7 +80,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
 router.post(
     "/:reviewId/images",
     requireAuth,
-    validateId(Review, "reviewId", 1),
+    validateId(Review, "reviewId", "guest"),
     async (req, res, next) => {
         try {
             const { reviewId } = req.params;
@@ -127,7 +127,7 @@ router.put(
     "/:reviewId",
     requireAuth,
     validateReview,
-    validateId(Review, "reviewId", 1),
+    validateId(Review, "reviewId", "guest"),
     handleValidationErrors,
     async (req, res, next) => {
         try {
@@ -168,7 +168,7 @@ router.put(
 router.delete(
     "/:reviewId",
     requireAuth,
-    validateId(Review, "reviewId", 1),
+    validateId(Review, "reviewId", "guest"),
     handleValidationErrors,
     async (req, res, next) => {
         try {
