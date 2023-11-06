@@ -126,15 +126,23 @@ router.get("/current", requireAuth, async (req, res, next) => {
                     "avgStarRating",
                 ],
                 [
-                    Sequelize.literal(`(
-                        SELECT url FROM "Images"
-                        WHERE "Images"."imageableType" = 'Spot'
-                        AND "Images"."imageableId" = Spot.id
-                        AND "Images"."preview" = true
-                        LIMIT 1
-                    )`),
-                    `previewImage`,
+                    Sequelize.fn(
+                        "COALESCE",
+                        Sequelize.fn("MAX", Sequelize.col("Images.url")),
+                        null
+                    ),
+                    "previewImage",
                 ],
+                // [
+                //     Sequelize.literal(`(
+                //         SELECT url FROM "Images"
+                //         WHERE "Images"."imageableType" = 'Spot'
+                //         AND "Images"."imageableId" = Spot.id
+                //         AND "Images"."preview" = true
+                //         LIMIT 1
+                //     )`),
+                //     `previewImage`,
+                // ],
             ],
             include: [
                 {
