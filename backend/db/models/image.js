@@ -1,4 +1,5 @@
 "use strict";
+/** @type {import('sequelize-cli').Migration} */
 const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
     class Image extends Model {
@@ -28,6 +29,12 @@ module.exports = (sequelize, DataTypes) => {
     }
     Image.init(
         {
+            id: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                autoIncrement: true,
+            },
             imageableType: {
                 type: DataTypes.ENUM("User", "Spot", "Review"),
                 allowNull: false,
@@ -48,7 +55,7 @@ module.exports = (sequelize, DataTypes) => {
         {
             sequelize,
             modelName: "Image",
-            tableName: 'images',
+            tableName: "images",
         }
     );
     return Image;

@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
                 // onDelete: "cascade",
             });
             User.hasMany(models.Image, {
+                as: 'Images',
                 foreignKey: "imageableId",
                 // onDelete: "cascade",
                 constraints: false,
