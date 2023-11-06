@@ -38,32 +38,31 @@ router.get("/", async (req, res) => {
         maxLng,
         minPrice,
         maxPrice,
-    } = req.query; // Initialize the 'where' object as an empty object
+    } = req.query;
 
-    const where = {}; // Filter based on minLat and maxLat
+    //  'whereObj' object to filter spots based on the query parameters
+    const whereObj = {};
 
     if (minLat) {
-        where.lat = { [Sequelize.Op.gte]: minLat }; // Greater than or equal to minLat
+        whereObj.lat = { [Sequelize.Op.gte]: minLat };
     }
     if (maxLat) {
-        where.lat = { ...where.lat, [Sequelize.Op.lte]: maxLat }; // Less than or equal to maxLat
-    } // Filter based on minLng and maxLng
-
+        whereObj.lat = { ...whereObj.lat, [Sequelize.Op.lte]: maxLat };
+    }
     if (minLng) {
-        where.lng = { [Sequelize.Op.gte]: minLng }; // Greater than or equal to minLng
+        whereObj.lng = { [Sequelize.Op.gte]: minLng };
     }
     if (maxLng) {
-        where.lng = { ...where.lng, [Sequelize.Op.lte]: maxLng }; // Less than or equal to maxLng
-    } // Filter based on minPrice and maxPrice
-
+        whereObj.lng = { ...whereObj.lng, [Sequelize.Op.lte]: maxLng };
+    }
     if (minPrice) {
-        where.price = { [Sequelize.Op.gte]: minPrice }; // Greater than or equal to minPrice
+        whereObj.price = { [Sequelize.Op.gte]: minPrice };
     }
     if (maxPrice) {
-        where.price = { ...where.price, [Sequelize.Op.lte]: maxPrice }; // Less than or equal to maxPrice
+        whereObj.price = { ...whereObj.price, [Sequelize.Op.lte]: maxPrice };
     }
 
-    const errors = {};
+    const errors = {}; // Object to hold any validation errors
 
     if (isNaN(page) || page < 1 || page > 10) {
         errors.page = "Page must be between 1 and 10";
@@ -95,13 +94,14 @@ router.get("/", async (req, res) => {
             message: "Bad Request",
             errors,
         });
-    } // Pagination
+    }
 
+    // Paginate the results
     const offset = (page - 1) * size;
 
     try {
-        // Define the query to filter spots based on the query parameters
-        const spotQuery = {
+        // Construct the query options for filtering
+        const findSpot = {
             attributes: [
                 "id",
                 "ownerId",
@@ -151,7 +151,7 @@ router.get("/", async (req, res) => {
                     required: false,
                 },
             ],
-            where, // Add the 'where' object to the query
+            where: whereObj, // Add the 'whereObj' object to the query
             raw: true,
             nest: true,
             group: ["Spot.id", "Reviews.stars"],
@@ -160,17 +160,17 @@ router.get("/", async (req, res) => {
         };
 
         const spots = await Spot.findAll({
-            ...spotQuery,
+            ...findSpot,
             offset,
-        }); // Construct the response object
+        });
 
-        const response = {
+        const responseObj = {
             Spots: spots,
             page: Number(page),
             size: Number(size),
-        }; // Send the response
+        };
 
-        res.status(200).json(response);
+        res.status(200).json(responseObj);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal Server Error" });
