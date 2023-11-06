@@ -2,6 +2,8 @@ const express = require("express");
 const { check } = require("express-validator");
 const bcrypt = require("bcryptjs");
 
+const { Op } = require("sequelize");
+
 const {
     handleValidationErrors,
     validateSpot,
@@ -25,53 +27,81 @@ const {
 const router = express.Router();
 
 //$ ALL SPOTS - GET /api/spots
-router.get("/", async (req, res, next) => {
-    const page = req.query.page ? parseInt(req.query.page) : 1;
-    const size = req.query.size ? parseInt(req.query.size) : 20;
-    const pagination = {};
+router.get("/", async (req, res) => {
+    // Extract query parameters from the request with default values
+    const {
+        page = 1,
+        size = 20,
+        minLat,
+        maxLat,
+        minLng,
+        maxLng,
+        minPrice,
+        maxPrice,
+    } = req.query; // Initialize the 'where' object as an empty object
 
-    if (page < 1 || page > 10) {
-        return res.status(400).json({
-            message: "Bad Request",
-            errors: {
-                page: "Page must be greater than or equal to 1 and less than or equal to 10",
-            },
-        });
+    const where = {}; // Filter based on minLat and maxLat
+
+    if (minLat) {
+        where.lat = { [Sequelize.Op.gte]: minLat }; // Greater than or equal to minLat
+    }
+    if (maxLat) {
+        where.lat = { ...where.lat, [Sequelize.Op.lte]: maxLat }; // Less than or equal to maxLat
+    } // Filter based on minLng and maxLng
+
+    if (minLng) {
+        where.lng = { [Sequelize.Op.gte]: minLng }; // Greater than or equal to minLng
+    }
+    if (maxLng) {
+        where.lng = { ...where.lng, [Sequelize.Op.lte]: maxLng }; // Less than or equal to maxLng
+    } // Filter based on minPrice and maxPrice
+
+    if (minPrice) {
+        where.price = { [Sequelize.Op.gte]: minPrice }; // Greater than or equal to minPrice
+    }
+    if (maxPrice) {
+        where.price = { ...where.price, [Sequelize.Op.lte]: maxPrice }; // Less than or equal to maxPrice
     }
 
-    if (size < 1 || size > 20) {
-        return res.status(400).json({
-            message: "Bad Request",
-            errors: {
-                size: "Size must be greater than or equal to 1 and less than or equal to 20",
-            },
-        });
+    const errors = {};
+
+    if (isNaN(page) || page < 1 || page > 10) {
+        errors.page = "Page must be between 1 and 10";
+    }
+    if (isNaN(size) || size < 1 || size > 20) {
+        errors.size = "Size must be between 1 and 20";
+    }
+    if (minLat && (isNaN(minLat) || minLat < -90 || minLat > 90)) {
+        errors.minLat = "Minimum latitude is invalid";
+    }
+    if (maxLat && (isNaN(maxLat) || maxLat < -90 || maxLat > 90)) {
+        errors.maxLat = "Maximum latitude is invalid";
+    }
+    if (minLng && (isNaN(minLng) || minLng < -180 || minLng > 180)) {
+        errors.minLng = "Minimum longitude is invalid";
+    }
+    if (maxLng && (isNaN(maxLng) || maxLng < -180 || maxLng > 180)) {
+        errors.maxLng = "Maximum longitude is invalid";
+    }
+    if (minPrice && (isNaN(minPrice) || minPrice < 0)) {
+        errors.minPrice = "Minimum price must be greater than or equal to 0";
+    }
+    if (maxPrice && (isNaN(maxPrice) || maxPrice < 0)) {
+        errors.maxPrice = "Maximum price must be greater than or equal to 0";
     }
 
-    pagination.limit = size;
-    pagination.offset = (page - 1) * size;
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            message: "Bad Request",
+            errors,
+        });
+    } // Pagination
 
-    const where = {};
-    const priceFilter = {};
-
-    if (req.query.minLat)
-        where.lat = { [Sequelize.Op.gte]: parseFloat(req.query.minLat) };
-    if (req.query.maxLat)
-        where.lat = { [Sequelize.Op.lte]: parseFloat(req.query.maxLat) };
-    if (req.query.minLng)
-        where.lng = { [Sequelize.Op.gte]: parseFloat(req.query.minLng) };
-    if (req.query.maxLng)
-        where.lng = { [Sequelize.Op.lte]: parseFloat(req.query.maxLng) };
-    if (req.query.minPrice)
-        priceFilter[Sequelize.Op.gte] = parseFloat(req.query.minPrice);
-    if (req.query.maxPrice)
-        priceFilter[Sequelize.Op.lte] = parseFloat(req.query.maxPrice);
-    if (Object.keys(priceFilter).length) where.price = priceFilter;
+    const offset = (page - 1) * size;
 
     try {
-        const allSpots = await Spot.findAll({
-            where,
-            ...pagination,
+        // Define the query to filter spots based on the query parameters
+        const spotQuery = {
             attributes: [
                 "id",
                 "ownerId",
@@ -87,7 +117,15 @@ router.get("/", async (req, res, next) => {
                 "createdAt",
                 "updatedAt",
                 [
-                    Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
+                    Sequelize.fn(
+                        "COALESCE",
+                        Sequelize.fn(
+                            "ROUND",
+                            Sequelize.col("Reviews.stars"),
+                            1
+                        ),
+                        null
+                    ),
                     "avgRating",
                 ],
                 [
@@ -102,33 +140,109 @@ router.get("/", async (req, res, next) => {
             include: [
                 {
                     model: Review,
+                    as: "Reviews",
                     attributes: [],
                 },
                 {
                     model: Image,
                     as: "SpotImages",
-                    attributes: [],
-                    where: {
-                        imageableType: "Spot",
-                        preview: true,
-                    },
+                    attributes: ["url"],
+                    where: { preview: true },
                     required: false,
                 },
             ],
-            group: ["Spot.id", "SpotImages.id"],
-            order: [["createdAt", "DESC"]],
-        });
+            where, // Add the 'where' object to the query
+            raw: true,
+            nest: true,
+            group: ["Spot.id", "Reviews.stars"],
+            includeIgnoreAttributes: false,
+            order: [["id", "ASC"]],
+        };
 
-        res.status(200).json({
-            Spots: allSpots,
-            page,
-            size,
-        });
+        const spots = await Spot.findAll({
+            ...spotQuery,
+            offset,
+        }); // Construct the response object
+
+        const response = {
+            Spots: spots,
+            page: Number(page),
+            size: Number(size),
+        }; // Send the response
+
+        res.status(200).json(response);
     } catch (err) {
-        next(err);
+        console.error(err);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 });
 
+// router.get("/", async (req, res) => {
+//     // Default values for pagination
+//     const page = parseInt(req.query.page) || 1;
+//     const size = parseInt(req.query.size) || 20;
+
+//     // Build the query options for pagination
+//     const pagination = {
+//         limit: size,
+//         offset: (page - 1) * size,
+//     };
+
+//     // Build the query options for filtering
+//     const filterOptions = {
+//         where: {},
+//         include: [
+//             {
+//                 model: Review,
+//                 attributes: [],
+//             },
+//             {
+//                 model: Image,
+//                 attributes: [],
+//                 where: {
+//                     preview: true,
+//                 },
+//                 required: false,
+//             },
+//         ],
+//         group: ["Spot.id"],
+//         ...pagination,
+//     };
+
+//     // Add optional filters if provided
+//     if (req.query.minLat)
+//         filterOptions.where.lat = { [Op.gte]: parseFloat(req.query.minLat) };
+//     if (req.query.maxLat)
+//         filterOptions.where.lat = { [Op.lte]: parseFloat(req.query.maxLat) };
+//     if (req.query.minLng)
+//         filterOptions.where.lng = { [Op.gte]: parseFloat(req.query.minLng) };
+//     if (req.query.maxLng)
+//         filterOptions.where.lng = { [Op.lte]: parseFloat(req.query.maxLng) };
+//     if (req.query.minPrice)
+//         filterOptions.where.price = {
+//             [Op.gte]: parseFloat(req.query.minPrice),
+//         };
+//     if (req.query.maxPrice)
+//         filterOptions.where.price = {
+//             [Op.lte]: parseFloat(req.query.maxPrice),
+//         };
+
+//     try {
+//         const spots = await Spot.findAll(filterOptions);
+//         res.status(200).json({
+//             Spots: spots,
+//             page: page,
+//             size: size,
+//         });
+//     } catch (error) {
+//         res.status(400).json({
+//             message: "Bad Request",
+//             errors:
+//                 error.errors ||
+//                 "An error occurred while processing your request",
+//         });
+//     }
+// });
 
 // router.get("/", async (req, res, next) => {
 //     try {
@@ -197,7 +311,7 @@ router.get("/", async (req, res, next) => {
 //                 //     // }
 //                 // },
 //             ],
-//             group: ["Spot.id", "Image.id"],
+//             group: ["Spot.id", /*"Image.id"*/],
 //         });
 //         res.json(allSpots);
 //     } catch (err) {
