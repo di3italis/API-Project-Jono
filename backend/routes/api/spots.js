@@ -143,12 +143,22 @@ router.get("/", async (req, res) => {
                     as: "Reviews",
                     attributes: [],
                 },
-                {
+                // {
+                //     model: Image,
+                //     as: "SpotImages",
+                //     attributes: ["url"],
+                //     where: { preview: true },
+                //     required: false,
+                // },
+                 {
                     model: Image,
                     as: "SpotImages",
-                    attributes: ["url"],
-                    where: { preview: true },
-                    required: false,
+                    attributes: [],
+                    where: {
+                        imageableType: "Spot",
+                        preview: true,
+                    },
+                    required: false, // This allows spots without images to still be included
                 },
             ],
             where: whereObj, // Add the 'whereObj' object to the query

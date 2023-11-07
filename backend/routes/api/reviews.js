@@ -78,6 +78,28 @@ router.get("/current", requireAuth, async (req, res, next) => {
                     as: "ReviewImages",
                     attributes: ["id", "url"],
                 },
+                // {
+                //     model: Review,
+                //     as: "Reviews",
+                //     attributes: [],
+                // },
+                // {
+                //     model: Image,
+                //     as: "SpotImages",
+                //     attributes: ["url"],
+                //     where: { preview: true },
+                //     required: false,
+                // },
+                {
+                    model: Image,
+                    as: "SpotImages",
+                    attributes: [],
+                    where: {
+                        imageableType: "Spot",
+                        preview: true,
+                    },
+                    required: false, // This allows spots without images to still be included
+                },
             ],
             // group: ["Review.id"],
         });
@@ -109,7 +131,7 @@ router.post(
 
             //! getReviewImages() returns an array of image objects, because Images table has polymorphic association with Reviews table (and Spots and Users tables) with imageableType: "Review" ...automagically generates getReviewImages by sequelize 🤯
             const imageCount = await review.getReviewImages();
-            if (imageCount.length >= 11) {
+            if (imageCount.length >= 10) {
                 return res.status(400).json({
                     message:
                         "Maximum number of images for this resource was reached",

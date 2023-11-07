@@ -112,8 +112,8 @@ router.put(
 
 //$ Delete a Booking - DELETE /api/bookings/:bookingId
 router.delete(
-    "/:bookingId",
-    validateId(Booking, "bookingId", "guest"),
+    "/:bookingId", requireAuth,
+    validateId(Booking, "bookingId", "guest"), handleValidationErrors,
     async (req, res, next) => {
         try {
             const deleteBooking = await Booking.destroy({

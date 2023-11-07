@@ -9,11 +9,12 @@ const {
     Booking,
     Sequelize,
 } = require("../../db/models");
+const { handleValidationErrors } = require("../../utils/validation");
 
 const router = express.Router();
 
 //$ Delete Review Image - DELETE /api/review-images/:imageId
-router.delete("/:imageId", requireAuth, async (req, res, next) => {
+router.delete("/:imageId", requireAuth, handleValidationErrors, async (req, res, next) => {
     try {
         const imageableId = parseInt(req.params.imageId);
         const imageableType = "Review";
