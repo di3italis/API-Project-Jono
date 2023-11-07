@@ -85,10 +85,10 @@ app.use((err, _req, res, _next) => {
     } else {
         // Respond with a general error format for all other types of errors
         res.json({
-            title: err.title || "Server Error",
+            // title: err.title || "Server Error",
             message: err.message,
             errors: err.errors, // Validation or other errors
-            stack: isProduction ? null : err.stack, // Include stack trace if not in production
+            // stack: isProduction ? null : err.stack, // Include stack trace if not in production
         });
     }
     // res.json({
