@@ -14,6 +14,7 @@ const { Booking, Spot, Review, Image, Sequelize } = require("../../db/models");
 const router = express.Router();
 
 //$ Get Current User Bookings - GET /api/bookings/current
+// Get Current User Bookings - GET /api/bookings/current
 router.get("/current", requireAuth, async (req, res, next) => {
     try {
         const userId = req.user.id;
@@ -21,7 +22,6 @@ router.get("/current", requireAuth, async (req, res, next) => {
             where: {
                 userId: userId,
             },
-            // attributes: ["id", "spotId"],
             include: [
                 {
                     model: Spot,
@@ -41,38 +41,43 @@ router.get("/current", requireAuth, async (req, res, next) => {
                                 "COALESCE",
                                 Sequelize.fn(
                                     "MAX",
-                                    Sequelize.col("SpotImages.url")
+                                    Sequelize.col("Spot->SpotImages.url")
                                 ),
                                 null
                             ),
                             "previewImage",
                         ],
-                        //     [
-                        //         Sequelize.literal(`(
-                        //     SELECT url FROM images
-                        //     WHERE Images.imageableType = 'Spot'
-                        //     AND images.imageableId = Spot.id
-                        //     AND images.preview = true
-                        //     LIMIT 1
-                        // )`),
-                        //         `previewImage`,
-                        //     ],
+                    ],
+                    include: [
+                        {
+                            model: Image,
+                            as: "SpotImages",
+                            attributes: [],
+                            where: {
+                                imageableType: "Spot",
+                                preview: true,
+                            },
+                            required: false,
+                        },
                     ],
                 },
             ],
+            group: ["Booking.id", "Spot.id", "Spot->SpotImages.id"], // Make sure to include group by for the MAX function
         });
-        const formattedBookings = bookings.map((booking) => {
-            return {
-                id: booking.id,
-                spotId: booking.spotId,
-                Spot: booking.Spot,
-                userId: booking.userId,
-                startDate: booking.startDate,
-                endDate: booking.endDate,
-                createdAt: booking.createdAt,
-                updatedAt: booking.updatedAt,
-            };
-        });
+
+        const formattedBookings = bookings.map((booking) => ({
+            id: booking.id,
+            spotId: booking.Spot.id,
+            Spot: {
+                ...booking.Spot.dataValues,
+                previewImage: booking.Spot.dataValues.previewImage,
+            },
+            userId: booking.userId,
+            startDate: booking.startDate,
+            endDate: booking.endDate,
+            createdAt: booking.createdAt,
+            updatedAt: booking.updatedAt,
+        }));
 
         res.status(200).json({ Bookings: formattedBookings });
     } catch (error) {
@@ -80,14 +85,15 @@ router.get("/current", requireAuth, async (req, res, next) => {
     }
 });
 
+
 //$ Edit a Booking - PUT /api/bookings/:bookingId
 router.put(
     "/:bookingId",
     requireAuth,
     validateId(Booking, "bookingId", "guest"),
     validateBookingInput,
-    handleValidationErrors,
     checkAvailability,
+    handleValidationErrors,
     async (req, res, next) => {
         try {
             const bookingId = +req.params.bookingId;

@@ -14,13 +14,12 @@ const { Image, Review, Spot, User, Sequelize } = require("../../db/models");
 const router = express.Router();
 
 //$ Get Reviews of Current User - GET /api/reviews/current
+// Get Reviews of Current User - GET /api/reviews/current
 router.get("/current", requireAuth, async (req, res, next) => {
     try {
         const userId = req.user.id;
         const reviews = await Review.findAll({
-            where: {
-                userId: userId,
-            },
+            where: { userId: userId },
             attributes: [
                 "id",
                 "userId",
@@ -29,6 +28,17 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 "stars",
                 "createdAt",
                 "updatedAt",
+                [ // Include the COALESCE SQL for previewImage here to attach it to the main record
+                    Sequelize.fn(
+                        "COALESCE",
+                        Sequelize.fn(
+                            "MAX",
+                            Sequelize.col("Spot->SpotImages.url")
+                        ),
+                        null
+                    ),
+                    "previewImage",
+                ],
             ],
             include: [
                 {
@@ -39,75 +49,37 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 {
                     model: Spot,
                     as: "Spot",
-                    attributes: [
-                        "id",
-                        "ownerId",
-                        "address",
-                        "city",
-                        "state",
-                        "country",
-                        "lat",
-                        "lng",
-                        "name",
-                        "price",
-                        [
-                            Sequelize.fn(
-                                "COALESCE",
-                                Sequelize.fn(
-                                    "MAX",
-                                    Sequelize.col("SpotImages.url")
-                                ),
-                                null
-                            ),
-                            "previewImage",
-                        ],
-                        //     [
-                        //         // AND Images.preview = true //!put this before LIMIT 1
-                        //         Sequelize.literal(`(
-                        //     SELECT url FROM "Images"
-                        //     WHERE "Images".imageableType = 'Spot'
-                        //     AND "Images".imageableId = Spot.id
-                        //     LIMIT 1
-                        // )`),
-                        //         `previewImage`,
-                        //     ],
-                    ],
+                    attributes: ["id", "ownerId", "address", "city", "state", "country", "lat", "lng", "name", "price"],
+                    include: [{
+                        model: Image,
+                        as: "SpotImages",
+                        attributes: [],
+                        where: {
+                            imageableType: "Spot",
+                            preview: true,
+                        },
+                        required: false
+                    }],
                 },
                 {
                     model: Image,
                     as: "ReviewImages",
                     attributes: ["id", "url"],
-                },
-                // {
-                //     model: Review,
-                //     as: "Reviews",
-                //     attributes: [],
-                // },
-                // {
-                //     model: Image,
-                //     as: "SpotImages",
-                //     attributes: ["url"],
-                //     where: { preview: true },
-                //     required: false,
-                // },
-                {
-                    model: Image,
-                    as: "SpotImages",
-                    attributes: [],
                     where: {
-                        imageableType: "Spot",
-                        preview: true,
+                        imageableType: "Review",
                     },
-                    required: false, // This allows spots without images to still be included
+                    required: false
                 },
             ],
-            // group: ["Review.id"],
+            group: ["Review.id", "User.id", "Spot.id", "Spot->SpotImages.id", "ReviewImages.id"],
         });
+
         res.json({ Reviews: reviews });
     } catch (error) {
         next(error);
     }
 });
+
 
 //$ Add Image to a Review AUTH UserId - POST /api/reviews/:reviewId/images
 router.post(
@@ -145,7 +117,7 @@ router.post(
             const newImage = await Image.create({
                 imageableType: "Review",
                 imageableId: reviewId,
-                url,
+                url: url,
                 preview: false,
             });
             res.status(200).json({ id: newImage.id, url: url });
