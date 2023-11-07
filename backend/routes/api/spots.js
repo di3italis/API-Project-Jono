@@ -180,7 +180,7 @@ router.get("/", async (req, res) => {
             size: Number(size),
         };
 
-        res.status(200).json(responseObj);
+        res.status(200).json({ responseObj:responseObj.Spots});
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal Server Error" });
