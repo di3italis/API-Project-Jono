@@ -9,18 +9,18 @@ const reviewImagesRouter = require("./review-images.js");
 const { restoreUser } = require("../../utils/auth.js");
 
 // GET /api/restore-user
-// router.get("/restore-user", (req, res) => {
+// router.get('/restore-user', (req, res) => {
 //     return res.json(req.user);
 // });
 
 // // GET /api/set-token-cookie
-// const { setTokenCookie } = require("../../utils/auth.js");
-// const { User, sequelize } = require("../../db/models");
+// const { setTokenCookie } = require('../../utils/auth.js');
+// const { User, sequelize } = require('../../db/models');
 // router.get('/set-token-cookie', async (_req, res) => {
 //     sequelize
 //     .query("SELECT name FROM sqlite_master WHERE type='table'")
 //     .then((tables) => {
-//         // console.log(tables[0], "************************");
+//         // console.log(tables[0], '************************');
 //     });
 //     const user = await User.findOne({
 //         where: {

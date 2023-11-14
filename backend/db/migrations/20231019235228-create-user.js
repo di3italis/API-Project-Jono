@@ -1,14 +1,14 @@
-"use strict";
+'use strict';
 
 let options = {};
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === 'production') {
     options.schema = process.env.SCHEMA;
 }
 
 module.exports = {
     async up(queryInterface, Sequelize) {
         await queryInterface.createTable(
-            "Users",
+            'Users',
             {
                 id: {
                     allowNull: false,
@@ -41,13 +41,13 @@ module.exports = {
                 createdAt: {
                     allowNull: false,
                     type: Sequelize.DATE,
-                    // defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+                    // defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
                     defaultValue: Sequelize.NOW,
                 },
                 updatedAt: {
                     allowNull: false,
                     type: Sequelize.DATE,
-                    // defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+                    // defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
                     defaultValue: Sequelize.NOW,
                 },
             },
@@ -55,7 +55,7 @@ module.exports = {
         );
     },
     async down(queryInterface, Sequelize) {
-        options.tableName = "Users";
+        options.tableName = 'Users';
         return queryInterface.dropTable(options);
     },
 };

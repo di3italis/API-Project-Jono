@@ -1,4 +1,4 @@
-## 231028
+# 231028
 
 - generated models and migrations
 - set associations in image.js
@@ -8,7 +8,7 @@
 
 ### next: continue model and migration updates
 
-## 231101
+# 231101
 
 got through spots, started reviews, running into error that i think has to do with onDelete: Cascade not being fully implemented. its in the models, but not migrations...
 
@@ -34,11 +34,11 @@ got through spots, started reviews, running into error that i think has to do wi
 }
 DELETE /api/spots/1 500 26.370 ms - 1096`
 
-## 231103
+# 231103
 
 [√] spot model is missing ownerId
 
-## 231104
+# 231104
 
 how do i modify this code? I want each error to be added to the stack, so when query gets to handlValidation errors, it prints or sends all errors at once, instead of exiting the query to print the first errors it sees:
 
@@ -96,7 +96,7 @@ const { review, stars } = req.body;
 
 );
 
-### 231106:1259
+# 231106:1259
 
 trying to solve images table pgres mystery
 
@@ -117,3 +117,39 @@ npm install && npm run build && npm run sequelize --prefix backend db:seed:undo:
 
 OLD:
 npm install && npm run build && npm run sequelize --prefix backend db:migrate && npm run sequelize --prefix backend db:seed:all
+
+# 231107:2127
+began replacing -> `"` <- with -> `'` <- in some files, in anticipation of converting all my model names and associations to lowercase to play nice with psql. not sure if this is the right course of action, but i had a lot of grief porting to pswl and render because of model names, i think...also my options objects were all wrong, need to fix that... `/Users/vegaprime/takashiShumamira/classNotes/databases/setup.md`
+
+### Step 3: Update Migration Files
+1. Adjust create table migrations:
+   ```javascript
+   let options = {};
+   if (process.env.NODE_ENV === 'production') {
+     options.schema = process.env.SCHEMA;
+   }
+
+   // Use options in queryInterface functions
+   ```
+2. Alter table migrations by defining the schema within options and using it in `addColumn` or `removeColumn` methods:
+   ```javascript
+   let options = {
+     tableName: 'YourTableName'
+   };
+
+   if (process.env.NODE_ENV === 'production') {
+     options.schema = process.env.SCHEMA;
+   }
+   // Use options in alter table functions
+   ```
+
+### Step 4: Adjust Seeder Files
+1. Update seeder files with schema information similar to migration files:
+   ```javascript
+   let options = {};
+   if (process.env.NODE_ENV === 'production') {
+     options.schema = process.env.SCHEMA;
+   }
+
+   // Use options in queryInterface functions for seeders
+   ```

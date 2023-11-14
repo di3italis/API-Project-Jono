@@ -85,7 +85,6 @@ router.get("/current", requireAuth, async (req, res, next) => {
     }
 });
 
-
 //$ Edit a Booking - PUT /api/bookings/:bookingId
 router.put(
     "/:bookingId",
@@ -118,8 +117,10 @@ router.put(
 
 //$ Delete a Booking - DELETE /api/bookings/:bookingId
 router.delete(
-    "/:bookingId", requireAuth,
-    validateId(Booking, "bookingId", "guest"), handleValidationErrors,
+    "/:bookingId",
+    requireAuth,
+    validateId(Booking, "bookingId", "guest"),
+    handleValidationErrors,
     async (req, res, next) => {
         try {
             const deleteBooking = await Booking.destroy({
