@@ -41,17 +41,22 @@ const handleValidationErrors = (req, _res, next) => {
   ]
 }*/
     //# --------------------------------------------------------------
-
+//! attempting to salvage this codeblock -validationErrors- by altering it into a pojo, not an object of array values
     if (!validationErrors.isEmpty()) {
-        // if error stack, create empty accumulator object, turn Result into array, reduce array into the current field of acculumlator object -> keys(params aka field) and values(array of errors)
+        // if error stack, create empty accumulator object, turn Result into array, reduce array into the current field of accumulator object -> keys(params aka field) and values(value of current error being accumulated)
+        console.log('_______validationErrors object:', validationErrors);
         const errors = validationErrors.array().reduce((accumulator, error) => {
+            console.log('current accumulator:', accumulator);
             if (!accumulator.param) {
-                // if accumulator doesn't have a key of error.param, create one and set it to an empty array
-                accumulator[error.param] = [];
+                // if accumulator doesn't have a key of error.param, create one and set it to an empty object
+                accumulator[error.param] = {};
             }
-            accumulator[error.param].push(error.msg); // Push the new error message to the field's array
+            accumulator[error.param]= error.msg; // set current key/value to accumulator field/param
+            console.log('___>just added an accumulator param!', accumulator[error.param]);
             return accumulator;
         }, {}); // Start with an empty accumulator object
+
+        console.log('______________errors:', errors);
 
         const err = Error("Bad request.");
         err.errors = errors;
@@ -61,6 +66,29 @@ const handleValidationErrors = (req, _res, next) => {
     } else {
         next();
     }
+    // if (!validationErrors.isEmpty()) {
+    //     // if error stack, create empty accumulator object, turn Result into array, reduce array into the current field of acculumlator object -> keys(params aka field) and values(array of errors)
+    //     console.log('_______validationErrors object:', validationErrors);
+    //     const errors = validationErrors.array().reduce((accumulator, error) => {
+    //         if (!accumulator.param) {
+    //             // if accumulator doesn't have a key of error.param, create one and set it to an empty array
+    //             accumulator[error.param] = [];
+    //         }
+    //         accumulator[error.param].push(error.msg); // Push the new error message to the field's array
+    //         console.log("___>just added an accumulator param!");
+    //         return accumulator;
+    //     }, {}); // Start with an empty accumulator object
+
+    //     console.log('______________errors:', errors);
+
+    //     const err = Error("Bad request.");
+    //     err.errors = errors;
+    //     err.status = 400;
+    //     err.title = "Bad request.";
+    //     next(err);
+    // } else {
+    //     next();
+    // }
 };
 
 const validateUser = [

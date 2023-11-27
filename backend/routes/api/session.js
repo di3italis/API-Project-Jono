@@ -21,6 +21,7 @@ const validateLogin = [
 ];
 
 //$ LOGIN
+// It's also good practice to validate and sanitize input data, handle errors gracefully, and log errors for debugging while avoiding exposing sensitive information. Make sure that is happening
 router.post("/", validateLogin, async (req, res, next) => {
     const { credential, password } = req.body;
 
@@ -39,7 +40,7 @@ router.post("/", validateLogin, async (req, res, next) => {
         !user ||
         !bcrypt.compareSync(password, user.hashedPassword.toString())
     ) {
-        const err = new Error("Ivalid credentials");
+        const err = new Error("Invalid credentials");
         err.status = 401;
         // err.title = "Login failed";
         // err.errors = { credential: "The provided credentials were invalid." };
@@ -64,12 +65,14 @@ router.delete("/", (_req, res) => {
     return res.json({ message: "success" });
 });
 
-//$ RESTORE SESSION USER
+//$ GET CURRENT USER / RESTORE SESSION USER
 router.get("/", (req, res) => {
     const { user } = req;
     if (user) {
         const safeUser = {
             id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: user.email,
             username: user.username,
         };

@@ -180,7 +180,7 @@ router.get("/", async (req, res) => {
             size: Number(size),
         };
 
-        res.status(200).json({ responseObj:responseObj.Spots});
+        res.status(200).json({ Spots:responseObj.Spots});
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal Server Error" });
@@ -416,6 +416,7 @@ router.get(
         // console.log(spotId);
         try {
             const { spotId } = req.params;
+            console.log('--------> testing get spot by id:', spotId);
             const spotsByID = await Spot.findByPk(spotId, {
                 attributes: [
                     "id",
@@ -446,6 +447,7 @@ router.get(
                         as: "SpotImages",
                         attributes: ["id", "url", "preview"],
                         where: { imageableType: "Spot" },
+                        required: false,
                     },
                     {
                         model: User,
@@ -636,7 +638,7 @@ router.post(
                 stars,
             });
 
-            res.status(201).json({ newReview });
+            res.status(201).json( newReview );
         } catch (err) {
             return res.status(400).json({
                 message: "Validation Error",

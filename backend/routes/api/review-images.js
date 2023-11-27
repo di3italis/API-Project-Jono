@@ -20,12 +20,12 @@ router.delete(
     handleValidationErrors,
     async (req, res, next) => {
         try {
-            const imageableId = parseInt(req.params.imageId);
+            const imageId = parseInt(req.params.imageId);
             const imageableType = "Review";
 
             const imageToDelete = await Image.findOne({
                 where: {
-                    imageableId: imageableId,
+                    id: imageId,
                     imageableType: imageableType,
                 },
                 include: {
@@ -45,13 +45,13 @@ router.delete(
                 });
             }
 
-            if (req.user.id !== imageToDelete.Review.userId) {
-                return res.status(401).json({ message: "Forbidden" });
-            }
+            // if (req.user.id !== imageToDelete.Review.userId) {
+            //     return res.status(401).json({ message: "Forbidden" });
+            // }
 
             await Image.destroy({
                 where: {
-                    imageableId: imageableId,
+                    id: imageId,
                     imageableType: imageableType,
                 },
             });
