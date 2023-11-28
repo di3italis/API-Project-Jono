@@ -9,7 +9,10 @@ const {
     Booking,
     Sequelize,
 } = require("../../db/models");
-const { handleValidationErrors, validateId } = require("../../utils/validation");
+const {
+    handleValidationErrors,
+    validateId,
+} = require("../../utils/validation");
 
 const router = express.Router();
 
@@ -18,7 +21,6 @@ const router = express.Router();
 router.delete(
     "/:images",
     requireAuth,
-    validateId(Image, "images", "owner"),
     handleValidationErrors,
     async (req, res, next) => {
         try {
@@ -30,12 +32,28 @@ router.delete(
                     id: imageId,
                     imageableType: imageableType,
                 },
+                include: {
+                    model: Spot,
+                    as: "Spot",
+                    attributes: ["ownerId"],
+                    // include: {
+                    //     model: User,
+                    //     as: 'Owner',
+                    //     attributes: ["ownerId"],
+                    // },
+                },
             });
+
+            console.log(JSON.stringify(findImage, null, 2));
 
             if (!findImage) {
                 res.status(404).json({
                     message: "Spot Image couldn't be found",
                 });
+            }
+
+            if (req.user.id !== findImage.Spot.ownerId) {
+                return res.status(401).json({ message: "Forbidden" });
             }
 
             await Image.destroy({

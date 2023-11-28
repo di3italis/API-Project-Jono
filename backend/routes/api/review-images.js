@@ -14,6 +14,7 @@ const { handleValidationErrors } = require("../../utils/validation");
 const router = express.Router();
 
 //$ Delete Review Image - DELETE /api/review-images/:imageId
+//todo verify review image exists, verify owner of review, delete image, send response
 router.delete(
     "/:imageId",
     requireAuth,
@@ -30,6 +31,7 @@ router.delete(
                 },
                 include: {
                     model: Review,
+                    as: 'Review',
                     include: {
                         model: User,
                         attributes: ["id"],
@@ -45,9 +47,9 @@ router.delete(
                 });
             }
 
-            // if (req.user.id !== imageToDelete.Review.userId) {
-            //     return res.status(401).json({ message: "Forbidden" });
-            // }
+            if (req.user.id !== imageToDelete.Review.userId) {
+                return res.status(401).json({ message: "Forbidden" });
+            }
 
             await Image.destroy({
                 where: {

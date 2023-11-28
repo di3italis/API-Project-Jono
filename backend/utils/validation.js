@@ -41,22 +41,25 @@ const handleValidationErrors = (req, _res, next) => {
   ]
 }*/
     //# --------------------------------------------------------------
-//! attempting to salvage this codeblock -validationErrors- by altering it into a pojo, not an object of array values
+    //! attempting to salvage this codeblock -validationErrors- by altering it into a pojo, not an object of array values
     if (!validationErrors.isEmpty()) {
         // if error stack, create empty accumulator object, turn Result into array, reduce array into the current field of accumulator object -> keys(params aka field) and values(value of current error being accumulated)
-        console.log('_______validationErrors object:', validationErrors);
+        console.log("_______validationErrors object:", validationErrors);
         const errors = validationErrors.array().reduce((accumulator, error) => {
-            console.log('current accumulator:', accumulator);
+            console.log("current accumulator:", accumulator);
             if (!accumulator.param) {
                 // if accumulator doesn't have a key of error.param, create one and set it to an empty object
                 accumulator[error.param] = {};
             }
-            accumulator[error.param]= error.msg; // set current key/value to accumulator field/param
-            console.log('___>just added an accumulator param!', accumulator[error.param]);
+            accumulator[error.param] = error.msg; // set current key/value to accumulator field/param
+            console.log(
+                "___>just added an accumulator param!",
+                accumulator[error.param]
+            );
             return accumulator;
         }, {}); // Start with an empty accumulator object
 
-        console.log('______________errors:', errors);
+        console.log("______________errors:", errors);
 
         const err = Error("Bad request.");
         err.errors = errors;
@@ -257,55 +260,116 @@ const validateBookingInput = [
 
 const checkAvailability = async (req, res, next) => {
     const { startDate, endDate } = req.body;
-    const idToFind = req.params.spotId || req.params.bookingId;
-    const idParam = req.params.spotId ? 'spotId' : 'id';
-
-    // const { spotId } = req.params;
+    // const idToFind = req.params.spotId || req.params.bookingId;
+    let { spotId } = req.params;
+    // const idParam = req.params.spotId ? "spotId" : "id";
+    const { bookingId } = req.params;
 
     // input start and end dates to check:
     const newStart = new Date(startDate);
     const newEnd = new Date(endDate);
 
+    if (bookingId) {
+        const booking = await Booking.findByPk(bookingId);
+        spotId = booking.spotId;
+    }
+
     // Find any booking(s) that conflict with newStart or newEnd
-    const conflictingBookings = await Booking.findAll({
-        where: {
-            [idParam]: idToFind,
-            [Op.or]: [
-                {
-                    startDate: {
-                        [Op.lte]: newEnd,
-                    },
-                    endDate: {
-                        [Op.gte]: newStart,
-                    },
+    const whereClause = {
+        spotId: spotId,
+        [Op.or]: [
+            {
+                startDate: {
+                    [Op.lte]: newEnd,
                 },
-                {
-                    startDate: {
-                        [Op.between]: [newStart, newEnd],
-                    },
+                endDate: {
+                    [Op.gte]: newStart,
                 },
-                {
-                    endDate: {
-                        [Op.between]: [newStart, newEnd],
-                    },
+            },
+            {
+                startDate: {
+                    [Op.between]: [newStart, newEnd],
                 },
-                {
-                    [Op.and]: [
-                        {
-                            startDate: {
-                                [Op.lte]: newEnd,
-                            },
+            },
+            {
+                endDate: {
+                    [Op.between]: [newStart, newEnd],
+                },
+            },
+            {
+                startDate: newStart,
+            },
+            {
+                endDate: newEnd,
+            },
+            {
+                [Op.and]: [
+                    {
+                        startDate: {
+                            [Op.lte]: newEnd,
                         },
-                        {
-                            endDate: {
-                                [Op.gte]: newStart,
-                            },
+                    },
+                    {
+                        endDate: {
+                            [Op.gte]: newStart,
                         },
-                    ],
-                },
-            ],
-        },
-    });
+                    },
+                ],
+            },
+        ],
+    };
+
+    if (bookingId) {
+        whereClause.id = { [Op.ne]: bookingId };
+    }
+   
+    const conflictingBookings = await Booking.findAll({ where: whereClause });
+
+    // const conflictingBookings = await Booking.findAll({
+    //     where: {
+    //         [idParam]: idToFind,
+    //         [Op.or]: [
+    //             {
+    //                 startDate: {
+    //                     [Op.lte]: newEnd,
+    //                 },
+    //                 endDate: {
+    //                     [Op.gte]: newStart,
+    //                 },
+    //             },
+    //             {
+    //                 startDate: {
+    //                     [Op.between]: [newStart, newEnd],
+    //                 },
+    //             },
+    //             {
+    //                 endDate: {
+    //                     [Op.between]: [newStart, newEnd],
+    //                 },
+    //             },
+    //             {
+    //                 startDate: newStart,
+    //             },
+    //             {
+    //                 endDate: newEnd,
+    //             },
+    //             {
+    //                 [Op.and]: [
+    //                     {
+    //                         startDate: {
+    //                             [Op.lte]: newEnd,
+    //                         },
+    //                     },
+    //                     {
+    //                         endDate: {
+    //                             [Op.gte]: newStart,
+    //                         },
+    //                     },
+    //                 ],
+    //             },
+    //         ],
+    //     },
+    // });
 
     // If there are conflicting bookings, return an error
     if (conflictingBookings.length > 0) {

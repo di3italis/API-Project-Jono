@@ -11,16 +11,19 @@ module.exports = (sequelize, DataTypes) => {
 
         static associate(models) {
             Image.belongsTo(models.User, {
+                as: 'User',
                 foreignKey: "imageableId",
                 constraints: false,
                 onDelete: "CASCADE",
             });
             Image.belongsTo(models.Spot, {
+                as: 'Spot',
                 foreignKey: "imageableId",
                 constraints: false,
                 onDelete: "CASCADE",
             });
             Image.belongsTo(models.Review, {
+                as: 'Review',
                 foreignKey: "imageableId",
                 constraints: false,
                 onDelete: "CASCADE",

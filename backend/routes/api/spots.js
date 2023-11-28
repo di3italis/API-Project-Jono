@@ -29,16 +29,9 @@ const router = express.Router();
 //$ ALL SPOTS - GET /api/spots
 router.get("/", async (req, res) => {
     // Extract query parameters from the request with default values
-    const {
-        page = 1,
-        size = 20,
-        minLat,
-        maxLat,
-        minLng,
-        maxLng,
-        minPrice,
-        maxPrice,
-    } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const size = parseInt(req.query.size) || 20;
+    const { minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
 
     //  'whereObj' object to filter spots based on the query parameters
     const whereObj = {};
@@ -116,18 +109,19 @@ router.get("/", async (req, res) => {
                 "price",
                 "createdAt",
                 "updatedAt",
-                [
-                    Sequelize.fn(
-                        "COALESCE",
-                        Sequelize.fn(
-                            "ROUND",
-                            Sequelize.col("Reviews.stars"),
-                            1
-                        ),
-                        null
-                    ),
-                    "avgRating",
-                ],
+                //? commented for testing 231128:
+                // [
+                //     Sequelize.fn(
+                //         "COALESCE",
+                //         Sequelize.fn(
+                //             "ROUND",
+                //             Sequelize.col("Reviews.stars"),
+                //             1
+                //         ),
+                //         null
+                //     ),
+                //     "avgRating",
+                // ],
                 [
                     Sequelize.fn(
                         "COALESCE",
@@ -141,7 +135,7 @@ router.get("/", async (req, res) => {
                 {
                     model: Review,
                     as: "Reviews",
-                    attributes: [],
+                    attributes: ['stars'],
                 },
                 // {
                 //     model: Image,
@@ -150,7 +144,7 @@ router.get("/", async (req, res) => {
                 //     where: { preview: true },
                 //     required: false,
                 // },
-                 {
+                {
                     model: Image,
                     as: "SpotImages",
                     attributes: [],
@@ -169,10 +163,25 @@ router.get("/", async (req, res) => {
             order: [["id", "ASC"]],
         };
 
+
+        // console.log("_____findSpot", findSpot);
+
         const spots = await Spot.findAll({
             ...findSpot,
             offset,
+            // limit: size,
         });
+
+        const findReview = spots.forEach(async spot => {
+            const currReview = await Review.findAll({
+                where: {
+                    spotId: spot.id
+                },
+                attributes: ['stars'],
+            })
+            console.log('current review:---->',currReview.stars);
+        });
+        console.log("----->spots", spots);
 
         const responseObj = {
             Spots: spots,
@@ -180,7 +189,16 @@ router.get("/", async (req, res) => {
             size: Number(size),
         };
 
-        res.status(200).json({ Spots:responseObj.Spots});
+        // const responseObj = { Spots: spots };
+
+        // if (req.query.page) {
+        //     responseObj.page = Number(page);
+        // }
+        // if (req.query.size) {
+        //     responseObj.size = Number(size);
+        // }
+
+        res.status(200).json(responseObj);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Internal Server Error" });
@@ -381,7 +399,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 },
                 {
                     model: Image,
-                   as: "SpotImages",
+                    as: "SpotImages",
                     attributes: [],
                     where: {
                         imageableType: "Spot",
@@ -416,7 +434,7 @@ router.get(
         // console.log(spotId);
         try {
             const { spotId } = req.params;
-            console.log('--------> testing get spot by id:', spotId);
+            console.log("--------> testing get spot by id:", spotId);
             const spotsByID = await Spot.findByPk(spotId, {
                 attributes: [
                     "id",
@@ -638,7 +656,7 @@ router.post(
                 stars,
             });
 
-            res.status(201).json( newReview );
+            res.status(201).json(newReview);
         } catch (err) {
             return res.status(400).json({
                 message: "Validation Error",
