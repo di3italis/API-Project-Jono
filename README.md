@@ -86,7 +86,7 @@
 
 <!-- ## USER AUTHENTICATION/AUTHORIZATION -->
 <!-- //# ---------------------------------------- -->
-<!-- //# ---------------------------------------- -->
+
 
 ### ✅All endpoints that require authentication
 
@@ -338,7 +338,7 @@ user's information.
 ##
 
 <!-- //# SPOTS ---------------------------------------- -->
-<!-- //# ---------------------------------------- -->
+
 <details>
 <summary style="font-size:1.3em; font-weight: bold">Spots</summary>
 
@@ -754,7 +754,6 @@ Deletes an existing spot.
 ##
 
 <!-- //# REVIEWS------------------------------------------------- -->
-<!-- //# ------------------------------------------------- -->
 
 <details>
 <summary style="font-size:1.3em; font-weight: bold">Reviews</summary>
@@ -1139,7 +1138,6 @@ Delete an existing review.
 ##
 
 <!-- //# BOOKINGS------------------------------------------------- -->
-<!-- //# ------------------------------------------------- -->
 
 <details>
 <summary style="font-size:1.3em; font-weight: bold">Bookings</summary>
@@ -1501,7 +1499,6 @@ Delete an existing booking.
 
 ##
 
-<!-- //# IMAGES------------------------------------------------- -->
 <!-- //# IMAGES------------------------------------------------- -->
 
 <details>
