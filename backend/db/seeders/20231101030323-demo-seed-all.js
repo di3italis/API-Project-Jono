@@ -130,10 +130,10 @@ module.exports = {
     },
 
     down: async (queryInterface, Sequelize) => {
+        await User.destroy({ where: {} });
+        await Spot.destroy({ where: {} });
         await Booking.destroy({ where: {} });
         await Review.destroy({ where: {} });
         await Image.destroy({ where: {} });
-        await Spot.destroy({ where: {} });
-        await User.destroy({ where: {} });
     },
 };
