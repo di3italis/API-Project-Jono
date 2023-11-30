@@ -330,20 +330,18 @@ const checkAvailability = async (req, res, next) => {
         const errors = {};
         conflictingBookings.forEach((booking) => {
             if (newStart < booking.startDate && newEnd > booking.endDate) {
-                errors.surroundingBooking =
-                    "Requested dates surround an existing booking.";
-            } else {
-                if (
-                    newStart <= booking.endDate &&
-                    newStart >= booking.startDate
-                ) {
-                    errors.startDate =
-                        "Start date conflicts with an existing booking";
-                }
-                if (newEnd >= booking.startDate && newEnd <= booking.endDate) {
-                    errors.endDate =
-                        "End date conflicts with an existing booking";
-                }
+                // errors.surroundingBooking =
+                //     "Requested dates surround an existing booking.";
+                errors.startDate =
+                    "Start date conflicts with an existing booking";
+                errors.endDate = "End date conflicts with an existing booking";
+            }
+            if (newStart <= booking.endDate && newStart >= booking.startDate) {
+                errors.startDate =
+                    "Start date conflicts with an existing booking";
+            }
+            if (newEnd >= booking.startDate && newEnd <= booking.endDate) {
+                errors.endDate = "End date conflicts with an existing booking";
             }
         });
 
