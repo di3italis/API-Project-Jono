@@ -335,7 +335,7 @@ user's information.
   //# --------------------------------------------------------------
   </details>
 
-##
+## SPOTS
 
 <!-- //# SPOTS ---------------------------------------- -->
 
@@ -751,7 +751,7 @@ Deletes an existing spot.
 
     </details>
 
-##
+## REVIEWS
 
 <!-- //# REVIEWS------------------------------------------------- -->
 
@@ -1135,7 +1135,7 @@ Delete an existing review.
 
   </details>
 
-##
+## BOOKINGS
 
 <!-- //# BOOKINGS------------------------------------------------- -->
 
@@ -1497,7 +1497,7 @@ Delete an existing booking.
 
     </details>
 
-##
+## IMAGES
 
 <!-- //# IMAGES------------------------------------------------- -->
 
@@ -1580,7 +1580,7 @@ Delete an existing image for a Review.
     }
     ```
 
-##
+## QUERY PARAMS
 
 <!-- //# Add Query Filters to Get All Spots------------------------------------------------- -->
 

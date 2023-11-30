@@ -13,6 +13,7 @@ const {
     validateBookingInput,
     validateBooking,
     checkAvailability,
+    queryParams,
 } = require("../../utils/validation");
 const { setTokenCookie, requireAuth } = require("../../utils/auth");
 const {
@@ -27,46 +28,87 @@ const {
 const router = express.Router();
 
 //$ GET ALL SPOTS - GET /api/spots
-router.get("/", async (req, res) => {
+router.get("/", queryParams, handleValidationErrors, async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const size = parseInt(req.query.size) || 20;
+    const { minLat, maxLat, minLng, maxLng, minPrice, maxPrice } = req.query;
+
+    //? construct a whereObj
+    const whereObj = {};
+    if (minLat) whereObj.lat = { [Op.gte]: parseFloat(minLat) };
+    if (maxLat)
+        whereObj.lat = { ...whereObj.lat, [Op.lte]: parseFloat(maxLat) };
+    if (minLng) whereObj.lng = { [Op.gte]: parseFloat(minLng) };
+    if (maxLng)
+        whereObj.lng = { ...whereObj.lng, [Op.lte]: parseFloat(maxLng) };
+    if (minPrice) whereObj.price = { [Op.gte]: parseFloat(minPrice) };
+    if (maxPrice)
+        whereObj.price = { ...whereObj.price, [Op.lte]: parseFloat(maxPrice) };
+
+    const queryOptions = {
+        where: whereObj,
+        limit: size,
+        offset: (page - 1) * size,
+    };
+
     //? lazy load all spots
-    const allSpots = await Spot.findAll();
+    try {
+        let getSpots = {};
+        //? if queryParams, use those
+        if (Object.keys(req.query).length > 0) {
+            console.log("\n<----  QUERY PARAMS  ---->", req.query, "\n");
+            getSpots = await Spot.findAll(queryOptions);
+        }
+        //? else, regular get all spots
+        else {
+            getSpots = await Spot.findAll();
+        }
 
-    //? iterate thru to get associated tables' data
-    for (let spot of allSpots) {
-        //? find reviews for each spot
-        const reviews = await Review.findAll({
-            where: {
-                spotId: spot.id,
-            },
-            attributes: ["stars"],
-        });
-        //? aggregate stars
-        let totalStars = 0;
-        reviews.forEach((review) => {
-            totalStars += review.stars;
-        });
-        const avgRating =
-            reviews.length > 0 ? totalStars / reviews.length : null;
-        //? insert agg -> each spot
-        spot.dataValues.avgRating = avgRating;
+        //? iterate thru to get associated tables' data
+        for (let spot of getSpots) {
+            //? find reviews for each spot
+            const reviews = await Review.findAll({
+                where: {
+                    spotId: spot.id,
+                },
+                attributes: ["stars"],
+            });
+            //? aggregate stars
+            let totalStars = 0;
+            reviews.forEach((review) => {
+                totalStars += review.stars;
+            });
+            const avgRating =
+                reviews.length > 0 ? totalStars / reviews.length : null;
+            //? insert agg -> each spot
+            spot.dataValues.avgRating = avgRating;
 
-        //? fetch one associated previewImage
-        const previewImage = await Image.findOne({
-            where: {
-                imageableId: spot.id,
-                imageableType: "Spot",
-                preview: 'true',
-            },
-            // attributes: [            ],
-        });
-        spot.dataValues.previewImage = previewImage;
+            //? fetch one associated previewImage
+            const previewImage = await Image.findOne({
+                where: {
+                    imageableId: spot.id,
+                    imageableType: "Spot",
+                    preview: "true",
+                },
+                // attributes: [            ],
+            });
+            spot.dataValues.previewImage = previewImage;
 
-        console.log("-->spot<---", spot);
+            // console.log("-->spot<---", spot);
+        }
+
+        let responseObj = {};
+        if (Object.keys(req.query).length > 0) {
+            responseObj = { Spots: getSpots, page: page, size: size };
+        } else {
+            responseObj = { Spots: getSpots };
+        }
+
+        res.json(responseObj);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
-
-    const responseObj = { Spots: allSpots };
-
-    res.json(responseObj);
 });
 
 //$ CURRENT USER'S SPOTS - GET /api/spots/current
@@ -133,7 +175,7 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 //     model: Image,
                 //     as: "SpotImages",
                 //     attributes: ["url"],
-                //     // where: { //! res.json(allSpots) === [] if(!image)
+                //     // where: { //! res.json(getSpots) === [] if(!image)
                 //     //     preview: true,
                 //     // }
                 // },

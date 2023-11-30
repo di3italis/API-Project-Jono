@@ -322,54 +322,8 @@ const checkAvailability = async (req, res, next) => {
     if (bookingId) {
         whereClause.id = { [Op.ne]: bookingId };
     }
-   
-    const conflictingBookings = await Booking.findAll({ where: whereClause });
 
-    // const conflictingBookings = await Booking.findAll({
-    //     where: {
-    //         [idParam]: idToFind,
-    //         [Op.or]: [
-    //             {
-    //                 startDate: {
-    //                     [Op.lte]: newEnd,
-    //                 },
-    //                 endDate: {
-    //                     [Op.gte]: newStart,
-    //                 },
-    //             },
-    //             {
-    //                 startDate: {
-    //                     [Op.between]: [newStart, newEnd],
-    //                 },
-    //             },
-    //             {
-    //                 endDate: {
-    //                     [Op.between]: [newStart, newEnd],
-    //                 },
-    //             },
-    //             {
-    //                 startDate: newStart,
-    //             },
-    //             {
-    //                 endDate: newEnd,
-    //             },
-    //             {
-    //                 [Op.and]: [
-    //                     {
-    //                         startDate: {
-    //                             [Op.lte]: newEnd,
-    //                         },
-    //                     },
-    //                     {
-    //                         endDate: {
-    //                             [Op.gte]: newStart,
-    //                         },
-    //                     },
-    //                 ],
-    //             },
-    //         ],
-    //     },
-    // });
+    const conflictingBookings = await Booking.findAll({ where: whereClause });
 
     // If there are conflicting bookings, return an error
     if (conflictingBookings.length > 0) {
@@ -409,6 +363,41 @@ const checkAvailability = async (req, res, next) => {
     next();
 };
 
+const queryParams = [
+    check("page")
+        .optional()
+        .isInt({ min: 1, max: 10 })
+        .withMessage("Page must be greater than or equal to 1"),
+    check("size")
+        .optional()
+        .isInt({ min: 1, max: 20 })
+        .withMessage("Size must be greater than or equal to 1"),
+    check("minLat")
+        .optional()
+        .isInt({ min: -90, max: 90 })
+        .withMessage("Minimum latitude is invalid"),
+    check("maxLat")
+        .optional()
+        .isInt({ min: -90, max: 90 })
+        .withMessage("Maximum latitude is invalid"),
+    check("minLng")
+        .optional()
+        .isInt({ min: -180, max: 180 })
+        .withMessage("Minimum longitude is invalid"),
+    check("maxLng")
+        .optional()
+        .isInt({ min: -180, max: 180 })
+        .withMessage("Maximum longitude is invalid"),
+    check("minPrice")
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage("Minimum price must be greater than or equal to 0"),
+    check("maxPrice")
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage("Maximum price must be greater than or equal to 0"),
+];
+
 module.exports = {
     handleValidationErrors,
     validateUser,
@@ -417,4 +406,5 @@ module.exports = {
     validateReview,
     validateBookingInput,
     checkAvailability,
+    queryParams,
 };
