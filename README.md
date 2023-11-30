@@ -87,7 +87,6 @@
 <!-- ## USER AUTHENTICATION/AUTHORIZATION -->
 <!-- //# ---------------------------------------- -->
 
-
 ### ✅All endpoints that require authentication
 
 All endpoints that require a current user to be logged in.
@@ -842,7 +841,7 @@ Create and return a new review for a spot specified by id.
     }
     ```
 
-### ✅🚨Get all Reviews of the Current User
+### ✅Get all Reviews of the Current User
 
 <!-- now returns ReviewImages, but im still not handling previewImage fully anywhere, multiple, edge cases -->
 

@@ -90,7 +90,7 @@ router.get("/", queryParams, handleValidationErrors, async (req, res) => {
                     imageableType: "Spot",
                     preview: "true",
                 },
-                // attributes: [            ],
+                attributes: ["url"],
             });
             spot.dataValues.previewImage = previewImage;
 
