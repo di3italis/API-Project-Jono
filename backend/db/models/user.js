@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
         {
             sequelize,
             modelName: "User",
-            tableName: "users",
+            // tableName: "users",
             defaultScope: {
                 // see notes on scope https://www.notion.so/cactus-pants/express-sequelize-psql-530ae53d363e417896e5fd1f2a2a80fb?pvs=4#21661a26ede4483d9ea247e493206e23
                 attributes: {
