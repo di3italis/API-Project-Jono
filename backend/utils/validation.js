@@ -148,7 +148,8 @@ const validateSpot = [
         .bail()
         .toFloat()
         .isFloat({ min: 0 })
-        .withMessage("Price per day is not valid"),
+        .withMessage("Price per day is required")
+        // .withMessage("Price per day is not valid"),
 ];
 
 //? old validate spotId, now made polymorphic below...🤯
