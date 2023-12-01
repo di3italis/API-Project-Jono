@@ -88,7 +88,7 @@ router.get("/", queryParams, handleValidationErrors, async (req, res) => {
                 where: {
                     imageableId: spot.id,
                     imageableType: "Spot",
-                    preview: 1,
+                    preview: "true",
                 },
                 attributes: ["url"],
             });
