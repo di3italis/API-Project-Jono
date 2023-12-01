@@ -44,7 +44,7 @@ router.delete(
                 },
             });
 
-            console.log(JSON.stringify(findImage, null, 2));
+            // console.log(JSON.stringify(findImage, null, 2));
 
             if (!findImage) {
                 res.status(404).json({
