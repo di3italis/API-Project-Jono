@@ -108,7 +108,7 @@ router.put(
                 }
             );
             const updatedBooking = await Booking.findByPk(bookingId);
-            return res.status(200).json({ updatedBooking });
+            return res.status(200).json( updatedBooking );
         } catch (error) {
             next(error);
         }

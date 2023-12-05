@@ -1343,7 +1343,7 @@ Create and return a new booking from a spot specified by id.
     }
     ```
 
-### ✅Edit a Booking
+### ✅🚨Edit a Booking
 
 Update and return an existing booking.
 
