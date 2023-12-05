@@ -28,17 +28,17 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 "stars",
                 "createdAt",
                 "updatedAt",
-                [ // Include the COALESCE SQL for previewImage here to attach it to the main record
-                    Sequelize.fn(
-                        "COALESCE",
-                        Sequelize.fn(
-                            "MAX",
-                            Sequelize.col("Spot->SpotImages.url")
-                        ),
-                        null
-                    ),
-                    "previewImage",
-                ],
+                // [ // Include the COALESCE SQL for previewImage here to attach it to the main record
+                //     Sequelize.fn(
+                //         "COALESCE",
+                //         Sequelize.fn(
+                //             "MAX",
+                //             Sequelize.col("Spot->SpotImages.url")
+                //         ),
+                //         null
+                //     ),
+                //     "previewImage",
+                // ],
             ],
             include: [
                 {
@@ -49,17 +49,42 @@ router.get("/current", requireAuth, async (req, res, next) => {
                 {
                     model: Spot,
                     as: "Spot",
-                    attributes: ["id", "ownerId", "address", "city", "state", "country", "lat", "lng", "name", "price"],
-                    include: [{
-                        model: Image,
-                        as: "SpotImages",
-                        attributes: [],
-                        where: {
-                            imageableType: "Spot",
-                            preview: true,
+                    attributes: [
+                        "id",
+                        "ownerId",
+                        "address",
+                        "city",
+                        "state",
+                        "country",
+                        "lat",
+                        "lng",
+                        "name",
+                        "price",
+                        [
+                            // Include the COALESCE SQL for previewImage here to attach it to the main record
+                            Sequelize.fn(
+                                "COALESCE",
+                                Sequelize.fn(
+                                    "MAX",
+                                    Sequelize.col("Spot->SpotImages.url")
+                                ),
+                                null
+                            ),
+                            "previewImage",
+                        ],
+                    ],
+                    include: [
+                        {
+                            model: Image,
+                            as: "SpotImages",
+                            attributes: [],
+                            where: {
+                                imageableType: "Spot",
+                                preview: true,
+                            },
+                            required: false,
                         },
-                        required: false
-                    }],
+                    ],
                 },
                 {
                     model: Image,
@@ -68,10 +93,16 @@ router.get("/current", requireAuth, async (req, res, next) => {
                     where: {
                         imageableType: "Review",
                     },
-                    required: false
+                    required: false,
                 },
             ],
-            group: ["Review.id", "User.id", "Spot.id", "Spot->SpotImages.id", "ReviewImages.id"],
+            group: [
+                "Review.id",
+                "User.id",
+                "Spot.id",
+                "Spot->SpotImages.id",
+                "ReviewImages.id",
+            ],
         });
 
         res.json({ Reviews: reviews });
