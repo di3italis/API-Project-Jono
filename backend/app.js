@@ -53,12 +53,12 @@ app.use((req, _res, next) => {
     err.errors = { message: "The requested resource could not be found." };
     err.status = 404;
 
-    console.log(`Error triggered for request: ${req.method} ${req.url}`);
-    console.log("Headers:", req.headers);
-    console.log("Body:", req.body);
-    console.log("Query:", req.query);
-    console.log("IP:", req.ip);
-    console.log("User Agent:", req.get("User-Agent"));
+    // console.log(`Error triggered for request: ${req.method} ${req.url}`);
+    // console.log("Headers:", req.headers);
+    // console.log("Body:", req.body);
+    // console.log("Query:", req.query);
+    // console.log("IP:", req.ip);
+    // console.log("User Agent:", req.get("User-Agent"));
 
     next(err);
 });
