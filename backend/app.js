@@ -47,13 +47,13 @@ app.use(routes);
 
 //# ERROR HANDLING--------------------------------------------------------------
 //? catch unhandled requests and pass them to error handler
-app.use((_req, _res, next) => {
+app.use((req, _res, next) => {
     const err = new Error("The requested resource couldn't be found.");
     err.title = "Resource Not Found";
     err.errors = { message: "The requested resource could not be found." };
     err.status = 404;
 
-    console.log(`Error triggered for request: ${req.method}`);
+    console.log(`Error triggered for request: ${req.method} ${req.url}`);
 
     next(err);
 });
