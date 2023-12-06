@@ -92,9 +92,12 @@ router.get("/", queryParams, handleValidationErrors, async (req, res) => {
                 },
                 attributes: ["url"],
             });
-            spot.dataValues.previewImage = previewImage.url;
-            // if (previewImage) {
-            // }
+            if (previewImage) {
+                spot.dataValues.previewImage = previewImage.url;
+            } else {
+                spot.dataValues.previewImage = null;
+
+            }
             // console.log(spot.dataValues.previewImage = previewImage);
 
             // console.log("-->spot<---", spot);
