@@ -81,6 +81,8 @@
 
 ## API Documentation
 
+## Users
+https://github.com/appacademy/assessment-for-sprint-13-api-documentation-airbnb/blob/main/API-docs-AirBnB.md
 <details>
 <summary style="font-size:1.3em; font-weight: bold">User Authentication</summary>
 
