@@ -88,12 +88,14 @@ router.get("/", queryParams, handleValidationErrors, async (req, res) => {
                 where: {
                     imageableId: spot.id,
                     imageableType: "Spot",
-                    preview: "true",
+                    preview: true,
                 },
                 attributes: ["url"],
             });
             spot.dataValues.previewImage = previewImage.url;
-            // console.log(spot.dataValues.previewImage = previewImage.url);
+            // if (previewImage) {
+            // }
+            // console.log(spot.dataValues.previewImage = previewImage);
 
             // console.log("-->spot<---", spot);
         }
@@ -215,6 +217,10 @@ router.get(
                     "price",
                     "createdAt",
                     "updatedAt",
+                    [
+                        Sequelize.fn("COUNT", Sequelize.col("Reviews.stars")),
+                        "numReviews",
+                    ],
                     [
                         Sequelize.fn("AVG", Sequelize.col("Reviews.stars")),
                         "avgRating",
