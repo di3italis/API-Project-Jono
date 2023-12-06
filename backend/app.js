@@ -53,7 +53,7 @@ app.use((_req, _res, next) => {
     err.errors = { message: "The requested resource could not be found." };
     err.status = 404;
 
-    console.log('Error triggered for request: ${req.method}');
+    console.log(`Error triggered for request: ${req.method}`);
 
     next(err);
 });
